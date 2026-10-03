@@ -1,0 +1,28 @@
+{
+  "project": "Power Places",
+  "package": "Entire Game Design",
+  "version": "1.0",
+  "documents": [
+    "00_PROJECT_OVERVIEW.md",
+    "01_PITCH.md",
+    "02_GAMEPLAY.md",
+    "03_PLACEMENT_AND_INTERACTION.md",
+    "04_TIME_AND_FORECASTING.md",
+    "05_CORE_SYSTEMS.md",
+    "06_REALITY_VS_ABSTRACTION.md",
+    "07_CAMPAIGN_AND_PROGRESSION.md",
+    "08_MVP_SCOPE.md",
+    "09_TECHNICAL_DESIGN.md",
+    "10_ART_ASSETS_PRESENTATION.md",
+    "11_INVESTOR_PRODUCT_RATIONALE.md"
+  ],
+  "concept_images": [
+    "concept_overview.png",
+    "concept_levels_and_assets.png"
+  ],
+  "seed_data": [
+    "example_level.json",
+    "example_profiles.json"
+  ],
+  "implementation_prompt": "prompts/CODEX_BOOTSTRAP.md"
+}

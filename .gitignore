@@ -1,0 +1,31 @@
+# Dependencies and builds
+node_modules/
+dist/
+dist-ssr/
+*.tsbuildinfo
+coverage/
+
+# Local runs, logs, scratch
+.local/
+*.log
+.vercel/
+.env
+.env.*
+
+# Blender backups
+*.blend1
+
+# Capacitor native build output
+android/app/build/
+android/.gradle/
+android/build/
+ios/App/build/
+ios/App/Pods/
+ios/DerivedData/
+
+# OS / editors
+.DS_Store
+Thumbs.db
+.vscode/*
+!.vscode/extensions.json
+.idea/

@@ -1,0 +1,6 @@
+interface:
+  display_name: "Feature Loop"
+  short_description: "Plan with Astra, build with Sol, review in Codex"
+  default_prompt: "Use $feature-loop to plan and build this feature with Astra and Sol; use Opus only if I request it."
+policy:
+  allow_implicit_invocation: false

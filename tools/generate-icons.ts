@@ -1,0 +1,7 @@
+import {readFileSync,writeFileSync} from 'node:fs';
+const names=['caret-left','caret-right','check-circle','dots-three','list-checks','lock-key','question','squares-four','arrow-counter-clockwise','arrow-fat-up','arrow-right','arrow-u-up-left','arrows-out-cardinal','battery-charging','battery-full','book-open','caret-down','caret-up','check','clock-counter-clockwise','coins','corners-out','cursor','door-open','eye','eye-slash','gear','hand-pointing','hash','lightbulb','lightning','line-segment','list','magnifying-glass','map-pin','map-trifold','minus','pause','play','plugs-connected','plus','star','sun','trash','wrench','x'];
+const source=readFileSync('node_modules/@phosphor-icons/web/src/regular/style.css','utf8');
+let out="@font-face{font-family:Phosphor;src:url('../../node_modules/@phosphor-icons/web/src/regular/Phosphor.woff2') format('woff2');font-weight:normal;font-style:normal;font-display:block}\n.ph{font-family:Phosphor!important;font-style:normal;font-weight:normal;font-variant:normal;text-transform:none;line-height:1;-webkit-font-smoothing:antialiased}\n";
+for(const name of names){const match=source.match(new RegExp(`\\.ph\\.ph-${name}:before\\s*\\{\\s*content:\\s*"([^"]+)"`));if(!match)throw new Error(`Missing Phosphor glyph: ${name}`);out+=`.ph.ph-${name}:before{content:"${match[1]}"}\n`}
+writeFileSync('src/ui/icons.css',out);
+console.log(`Selected ${names.length} Phosphor glyphs`);

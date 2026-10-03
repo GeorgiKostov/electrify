@@ -1,0 +1,6 @@
+interface:
+  display_name: "Opus Loop"
+  short_description: "Opus plans and reviews; Sol and Astra build"
+  default_prompt: "Use $opus-loop to discuss this feature's architecture with Opus, bring in Astra feedback when I ask, then build with Sol and Astra and finish with Opus review."
+policy:
+  allow_implicit_invocation: false

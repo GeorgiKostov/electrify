@@ -1,0 +1,6 @@
+interface:
+  display_name: "Opus Review"
+  short_description: "Ask Opus for a focused architecture second opinion"
+  default_prompt: "Use $opus-review to review this architecture and identify concrete tradeoffs or missing cases."
+policy:
+  allow_implicit_invocation: false

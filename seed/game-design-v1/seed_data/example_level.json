@@ -1,0 +1,79 @@
+{
+  "id": "river-village-stage-1",
+  "title": "First Connection",
+  "timestepMinutes": 15,
+  "horizonSteps": 96,
+  "budget": 8,
+  "startingEntities": [
+    {
+      "id": "grid",
+      "type": "externalGrid",
+      "voltage": "MV",
+      "capacityMW": 2.0,
+      "tile": [
+        1,
+        8
+      ]
+    },
+    {
+      "id": "houseA",
+      "type": "load",
+      "voltage": "LV",
+      "profile": "household",
+      "scaleMW": 0.06,
+      "tile": [
+        10,
+        7
+      ]
+    },
+    {
+      "id": "houseB",
+      "type": "load",
+      "voltage": "LV",
+      "profile": "household",
+      "scaleMW": 0.05,
+      "tile": [
+        12,
+        8
+      ]
+    },
+    {
+      "id": "cafe",
+      "type": "load",
+      "voltage": "LV",
+      "profile": "cafe",
+      "scaleMW": 0.08,
+      "tile": [
+        11,
+        10
+      ]
+    }
+  ],
+  "tools": [
+    {
+      "type": "LV_LINE",
+      "cost": 1,
+      "capacityMW": 0.4
+    },
+    {
+      "type": "MV_LINE",
+      "cost": 1,
+      "capacityMW": 2.0
+    },
+    {
+      "type": "TRANSFORMER",
+      "cost": 3,
+      "from": "MV",
+      "to": "LV",
+      "capacityMW": 0.4
+    }
+  ],
+  "goals": [
+    {
+      "type": "serveAllRequiredLoad"
+    },
+    {
+      "type": "withinBudget"
+    }
+  ]
+}
