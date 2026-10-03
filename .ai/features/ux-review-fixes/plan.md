@@ -1,0 +1,9 @@
+# Implementation plan
+
+1. Baseline and formatting → verify existing checks; separate local commits.
+2. Renderer and data → reuse pulses/ring; cache topology and grid, update materials/fill/loading/selection; interpolate visual lighting; deterministic visual attachment offsets shared by cables and pulses. Expose existing per-node simulation demand without new calculations. Verify render math and unchanged witness/audit results.
+3. Interaction and layout → explicit target-local confirmation; keep line tool armed, chain from the target with unchanged cumulative LV reach; source reselection and stationary right-click cancel, right-drag pan. Opaque bounded timeline with shared kW axis, legend and now cursor; legal EV range endpoints including midnight. Fit within free phone frame; tray flow, useful inspector, menu/cover/coach polish. Verify real production handler regressions and browser viewports.
+4. Cohesive extraction → ui/hud, tray, timeline, inspector, overlays; game/session; input/map-input. One concrete session and single refresh coordinator. Skip unchanged section HTML while retaining focus, selection, Details and scroll. Migrate existing AST-based harnesses to extracted handlers without weaker assertions.
+5. Complete docs, all checks and exact uncommitted revision snapshot → coordinator browser acceptance, independent fresh Astra review and corrections.
+
+Assumptions: separate cable attachment points are a visual choice only; no shared-feeder simulation change. The chart names grid import correctly; a grid connection limit compares to grid import, not a local transformer against whole-village demand. Tasks works in baseline phone browser; improve its typography and preserve handler. Existing idle pulses and selection ring need visibility/lifecycle fixes. No new runtime dependencies.

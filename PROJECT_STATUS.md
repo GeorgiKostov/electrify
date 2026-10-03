@@ -1,5 +1,21 @@
 # Project status
 
+## 3 Oct 2026 — UX/UI review fixes
+
+**Stage:** all checks and coordinator browser acceptance passed after one Astra correction; final revision re-review in progress.
+
+- All findings from docs/reviews/UX_UI_REVIEW_2026-10-02.md are implemented: day/night and power cues, visible idle flow,
+  visual cable attachments, armed/chained explicit line confirmation, useful inspector, readable shared-scale timeline,
+  bounded opaque docks, responsive controls/tray and Home/cover polish. Existing electrical balance, lessons and saves remain intact.
+- Main now bootstraps concrete session/controller, five cohesive UI modules and extracted map input. One refresh coordinates
+  the UI; stable sections retain DOM/focus/Details/scroll and step changes reuse scene/grid geometry.
+- 66 tests, typecheck, 218 copy strings, six-stage audit and build pass. The existing chunk warning remains, now about 587 kB.
+  Coordinator browser checks use separate port 5187 and cover the five required sizes plus 375×812, 1280×800 and 900×800;
+  successful animated stage-1 and stage-6 days with completion, idle/reduced-motion cues and midnight schedule reload have passed. Astra found one P2 internal timeline scroll issue, corrected in round 1 and verified in the phone browser.
+- Local baseline cabf9f0 and formatting-only be49785 were committed before behavioral work. Fixes remain uncommitted;
+  no push/deployment. Next action: finish the exact-revision Astra confirmation, then play the updated local preview.
+  Durable reports and exact revision live in .ai/features/ux-review-fixes/.
+
 ## 1 Oct 2026 — UI layout cleanup
 
 **Stage:** complete; coordinator browser acceptance and independent Astra review passed after one correction round.

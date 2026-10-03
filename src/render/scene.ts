@@ -1,6 +1,8 @@
 import * as THREE from 'three';
-import type { State, DayResult, Node, StepResult, Tier } from '../game/types';
+import type { State, DayResult, Node, Tier } from '../game/types';
 import { buildTree, supportsTier, type Tree } from '../sim/network';
+import { daylightAt } from './daylight';
+import { cableEndpoints, pulseCount, pulsePhase } from './network-view';
 import { groundAt, panOffset, zoomAt, wheelFactor } from './navigation';
 const colours = {
   meadow: 0xa9c79a,
@@ -22,7 +24,39 @@ const colours = {
 };
 const mat = (c: number, emissive = 0) =>
   new THREE.MeshLambertMaterial({ color: c, emissive });
+type NodeView = { group: THREE.Group; ring: THREE.Mesh };
+type LineView = {
+  meshes: THREE.Mesh[];
+  a: THREE.Vector3;
+  b: THREE.Vector3;
+  length: number;
+  forward: boolean;
+};
+type PulseRun = {
+  a: THREE.Vector3;
+  b: THREE.Vector3;
+  length: number;
+  count: number;
+  sign: number;
+};
 export class World {
+  hemisphere = new THREE.HemisphereLight(0xffffff, 0x879c99, 2);
+  sun = new THREE.DirectionalLight(0xfff1db, 2.3);
+  nodeViews = new Map<string, NodeView>();
+  lineViews = new Map<string, LineView>();
+  topologyKey = '';
+  gridStage = 0;
+  lastResult?: DayResult;
+  lastStep = -1;
+  lastSelection?: string;
+  pulseRuns: PulseRun[] = [];
+  pulseMesh?: THREE.InstancedMesh;
+  arrowMesh?: THREE.InstancedMesh;
+  visualStep = 72;
+  animationTime = 0;
+  frameLast = 0;
+  lightingKey = '';
+
   canvas: HTMLCanvasElement;
   renderer: THREE.WebGLRenderer;
   scene = new THREE.Scene();
@@ -66,8 +100,8 @@ export class World {
     this.renderer.shadowMap.enabled = true;
     this.renderer.outputColorSpace = THREE.SRGBColorSpace;
     this.scene.background = null;
-    this.scene.add(new THREE.HemisphereLight(0xffffff, 0x879c99, 2));
-    const sun = new THREE.DirectionalLight(0xfff1db, 2.3);
+    this.scene.add(this.hemisphere);
+    const sun = this.sun;
     sun.position.set(-8, 24, 15);
     sun.castShadow = true;
     sun.shadow.mapSize.set(1024, 1024);
@@ -194,34 +228,74 @@ export class World {
       { x: f.left + f.width / 2, y: f.top + f.height / 2 },
     );
   }
-  cover(state: State, result: DayResult) {
-    this.draw(state, result, 50);
+  cover(state: State, result: DayResult, focus = 50) {
+    const previous = {
+      state: this.state,
+      result: this.result,
+      step: this.step,
+      selected: this.selected,
+      panX: this.panX,
+      panZ: this.panZ,
+      zoom: this.zoom,
+      span: this.baseSpan,
+      frame: this.frameRect,
+      cameraZoom: this.camera.zoom,
+      visual: this.visualStep,
+    };
+    this.setFrame({
+      left: 20,
+      top: 20,
+      width: innerWidth - 40,
+      height: innerHeight - 40,
+    });
+    this.draw(state, result, focus);
     this.fit();
     this.renderer.render(this.scene, this.camera);
-    const points = this.corners().map((p) => p.project(this.camera)),
-      xs = points.map((p) => ((p.x + 1) * this.canvas.width) / 2),
-      ys = points.map((p) => ((1 - p.y) * this.canvas.height) / 2),
-      x = Math.max(0, Math.min(...xs) - 8),
-      y = Math.max(0, Math.min(...ys) - 8),
-      width = Math.min(this.canvas.width - x, Math.max(...xs) - x + 8),
-      height = Math.min(this.canvas.height - y, Math.max(...ys) - y + 8),
-      image = document.createElement('canvas');
+    const points = this.corners().map((p) => p.project(this.camera));
+    const xs = points.map((p) => ((p.x + 1) * this.canvas.width) / 2);
+    const ys = points.map((p) => ((1 - p.y) * this.canvas.height) / 2);
+    const x = Math.max(0, Math.min(...xs) - 8),
+      y = Math.max(0, Math.min(...ys) - 8);
+    const width = Math.min(this.canvas.width - x, Math.max(...xs) - x + 8);
+    const height = Math.min(this.canvas.height - y, Math.max(...ys) - y + 8);
+    const image = document.createElement('canvas');
     image.width = 600;
     image.height = Math.round((600 * height) / width);
-    image
-      .getContext('2d')!
-      .drawImage(
-        this.canvas,
-        x,
-        y,
-        width,
-        height,
-        0,
-        0,
-        image.width,
-        image.height,
+    const ctx = image.getContext('2d')!,
+      light = daylightAt(focus);
+    const gradient = ctx.createLinearGradient(0, 0, 0, image.height);
+    gradient.addColorStop(0, light.skyTop);
+    gradient.addColorStop(1, light.skyBottom);
+    ctx.fillStyle = gradient;
+    ctx.fillRect(0, 0, image.width, image.height);
+    ctx.drawImage(
+      this.canvas,
+      x,
+      y,
+      width,
+      height,
+      0,
+      0,
+      image.width,
+      image.height,
+    );
+    const url = image.toDataURL('image/png');
+    this.panX = previous.panX;
+    this.panZ = previous.panZ;
+    this.zoom = previous.zoom;
+    this.baseSpan = previous.span;
+    this.camera.zoom = previous.cameraZoom;
+    this.frameRect = previous.frame;
+    if (previous.state && previous.result)
+      this.draw(
+        previous.state,
+        previous.result,
+        previous.step,
+        previous.selected,
+        previous.visual,
       );
-    return image.toDataURL('image/png');
+    this.resize();
+    return url;
   }
   tile(clientX: number, clientY: number) {
     const p = this.groundPoint(clientX, clientY);
@@ -301,6 +375,7 @@ export class World {
   clear(group: THREE.Group) {
     group.traverse((o) => {
       if (o instanceof THREE.Mesh || o instanceof THREE.Line) {
+        if (o instanceof THREE.InstancedMesh) o.dispose();
         o.geometry.dispose();
         const materials = Array.isArray(o.material) ? o.material : [o.material];
         for (const m of materials) m.dispose();
@@ -308,121 +383,262 @@ export class World {
     });
     group.clear();
   }
-  draw(state: State, result: DayResult, step: number, selected?: string) {
-    if (this.state !== state) this.tree = buildTree(state);
+  draw(
+    state: State,
+    result: DayResult,
+    step: number,
+    selected?: string,
+    visualStep = step,
+  ) {
+    const key = JSON.stringify([
+      state.stage,
+      state.nodes.map((n) => [n.id, n.kind, n.x, n.z, n.size]),
+      state.lines.map((l) => [l.id, l.a, l.b, l.tier]),
+    ]);
+    if (key !== this.topologyKey) {
+      this.topologyKey = key;
+      this.tree = buildTree(state);
+      this.clear(this.group);
+      this.clear(this.pulses);
+      this.nodeViews.clear();
+      this.lineViews.clear();
+      this.lastResult = undefined;
+      const early = state.stage === 1,
+        cx = early ? 6 : 12,
+        width = early ? 12 : 25,
+        depth = early ? 12 : 19;
+      this.box(this.group, cx, -0.62, 9, width, 1.2, depth, colours.soil);
+      this.box(this.group, cx, 0.005, 9, width, 0.08, depth, colours.meadow);
+      this.box(this.group, cx, 0.055, 9, width - 1, 0.035, 1, colours.road);
+      if (!early)
+        this.box(this.group, 12, 0.06, 4.8, 1.15, 0.04, 9, colours.river);
+      for (const [x, z] of [
+        [2, 3],
+        [4, 14],
+        [11, 3],
+        [12, 16],
+        [21, 4],
+        [23, 8],
+        [3, 6],
+        [13, 3],
+        [2, 16],
+        [10, 15],
+      ]) {
+        if (early && (x > 11 || z < 3 || z > 15)) continue;
+        this.box(this.group, x, 0.24, z, 0.18, 0.48, 0.18, colours.lv);
+        const leaf = new THREE.Mesh(
+          new THREE.ConeGeometry(0.55, 1.4, 6),
+          mat(colours.tree),
+        );
+        leaf.position.set(x, 0.9, z);
+        leaf.castShadow = true;
+        this.group.add(leaf);
+      }
+      for (const line of state.lines) {
+        const [a, b] = cableEndpoints(state, line).map(
+          (p) => new THREE.Vector3(p.x, p.y, p.z),
+        );
+        const meshes = [
+          this.cable(a, b, colours.cable, line.tier === 'MV' ? 0.044 : 0.032),
+        ];
+        if (line.tier === 'MV') {
+          const offset = new THREE.Vector3(0, 0.1, 0.1);
+          meshes.push(
+            this.cable(
+              a.clone().add(offset),
+              b.clone().add(offset),
+              colours.cable,
+              0.022,
+            ),
+          );
+          meshes.push(
+            this.cable(
+              a.clone().sub(offset),
+              b.clone().sub(offset),
+              colours.cable,
+              0.022,
+            ),
+          );
+        }
+        const edge = this.tree.edgeById.get(line.id)!;
+        this.lineViews.set(line.id, {
+          meshes,
+          a,
+          b,
+          length: a.distanceTo(b),
+          forward: this.tree.parent[edge.b] === edge.a,
+        });
+      }
+      for (const node of state.nodes) {
+        const group = this.model(node);
+        group.position.set(node.x, 0, node.z);
+        group.userData.nodeId = node.id;
+        const ring = new THREE.Mesh(
+          new THREE.TorusGeometry(0.85, 0.055, 6, 40),
+          new THREE.MeshBasicMaterial({ color: 0x1d6a8c, depthTest: false }),
+        );
+        ring.rotation.x = -Math.PI / 2;
+        ring.position.y = 0.12;
+        ring.renderOrder = 4;
+        ring.visible = false;
+        group.add(ring);
+        this.nodeViews.set(node.id, { group, ring });
+        this.group.add(group);
+      }
+      const capacity = Math.max(
+        1,
+        Math.min(
+          2000,
+          Math.ceil(
+            [...this.lineViews.values()].reduce(
+              (sum, l) => sum + l.length * 6,
+              0,
+            ),
+          ),
+        ),
+      );
+      this.pulseMesh = new THREE.InstancedMesh(
+        new THREE.SphereGeometry(0.065, 6, 4),
+        new THREE.MeshBasicMaterial({ color: colours.spark, depthTest: false }),
+        capacity,
+      );
+      this.arrowMesh = new THREE.InstancedMesh(
+        new THREE.ConeGeometry(0.095, 0.24, 4),
+        new THREE.MeshBasicMaterial({ color: colours.spark, depthTest: false }),
+        capacity,
+      );
+      this.pulseMesh.frustumCulled = false;
+      this.arrowMesh.frustumCulled = false;
+      this.pulseMesh.renderOrder = 3;
+      this.arrowMesh.renderOrder = 3;
+      this.pulses.add(this.pulseMesh, this.arrowMesh);
+    }
     this.state = state;
+    this.nodes = state.nodes;
     this.result = result;
     this.step = step;
     this.selected = selected;
-    this.clear(this.group);
-    this.clear(this.pulses);
+    this.setVisualTime(visualStep);
+    if (
+      this.lastResult === result &&
+      this.lastStep === step &&
+      this.lastSelection === selected
+    )
+      return;
+    this.lastResult = result;
+    this.lastStep = step;
+    this.lastSelection = selected;
     const current = result.steps[step];
-    const night = step >= 72 || step < 24;
-    this.scene.background = null;
-    const early = state.stage === 1,
-      cx = early ? 6 : 12,
-      w = early ? 12 : 25,
-      d = early ? 12 : 19;
-    this.box(this.group, cx, -0.62, 9, w, 1.2, d, colours.soil);
-    this.box(this.group, cx, 0.005, 9, w, 0.08, d, colours.meadow);
-    this.box(this.group, cx, 0.055, 9, w - 1, 0.035, 1, colours.road);
-    if (!early)
-      this.box(this.group, 12, 0.06, 4.8, 1.15, 0.04, 9, colours.river);
-    for (const [x, z] of [
-      [2, 3],
-      [4, 14],
-      [11, 3],
-      [12, 16],
-      [21, 4],
-      [23, 8],
-      [3, 6],
-      [13, 3],
-      [2, 16],
-      [10, 15],
-    ] as [number, number][]) {
-      if (early && (x > 11 || z < 3 || z > 15)) continue;
-      this.box(this.group, x, 0.24, z, 0.18, 0.48, 0.18, colours.lv);
-      const leaf = new THREE.Mesh(
-        new THREE.ConeGeometry(0.55, 1.4, 6),
-        mat(colours.tree),
-      );
-      leaf.position.set(x, 0.9, z);
-      leaf.castShadow = true;
-      this.group.add(leaf);
-    }
+    this.pulseRuns = [];
     for (const line of state.lines) {
-      const a = state.nodes.find((n) => n.id === line.a),
-        b = state.nodes.find((n) => n.id === line.b);
-      if (!a || !b) continue;
-      const flow = current.flow[line.id] ?? 0,
-        loading = current.loading[line.id] ?? 0,
-        tripped = current.trips.includes(line.id);
-      const height = line.tier === 'MV' ? 1.8 : 0.9;
-      const p = new THREE.Vector3(a.x, height, a.z),
-        q = new THREE.Vector3(b.x, height, b.z);
-      const colour =
-        tripped || loading > 1
-          ? colours.over
-          : loading >= 0.8
-            ? colours.busy
-            : colours.cable;
-      this.cable(p, q, colour, line.tier === 'MV' ? 0.052 : 0.035);
-      if (line.tier === 'MV') {
-        this.cable(
-          p.clone().add(new THREE.Vector3(0, 0.13, 0.12)),
-          q.clone().add(new THREE.Vector3(0, 0.13, 0.12)),
-          colour,
-          0.025,
-        );
-        this.cable(
-          p.clone().add(new THREE.Vector3(0, -0.13, -0.12)),
-          q.clone().add(new THREE.Vector3(0, -0.13, -0.12)),
-          colour,
-          0.025,
-        );
-      }
-      if (flow !== 0 && !tripped) {
-        const pa = a.kind === 'transformer' ? `${a.id}:${line.tier}` : a.id,
-          pb = b.kind === 'transformer' ? `${b.id}:${line.tier}` : b.id,
-          forward = this.tree?.parent[pb] === pa;
-        const count = Math.max(1, Math.min(6, Math.round(Math.abs(flow) / 8)));
-        for (let i = 0; i < count; i++) {
-          const dot = new THREE.Mesh(
-            new THREE.SphereGeometry(0.075, 6, 4),
-            new THREE.MeshBasicMaterial({ color: colours.spark }),
-          );
-          dot.userData = {
-            a: p,
-            b: q,
-            index: i,
-            count,
-            flow: forward ? flow : -flow,
-          };
-          this.pulses.add(dot);
-        }
-      }
+      const view = this.lineViews.get(line.id)!,
+        flow = current.flow[line.id] ?? 0,
+        loading = current.loading[line.id] ?? 0;
+      const tripped = current.trips.includes(line.id),
+        colour =
+          selected === line.id
+            ? 0x1d6a8c
+            : tripped || loading > 1
+              ? colours.over
+              : loading >= 0.8
+                ? colours.busy
+                : colours.cable;
+      for (const mesh of view.meshes)
+        (mesh.material as THREE.MeshLambertMaterial).color.setHex(colour);
+      if (flow && !tripped)
+        this.pulseRuns.push({
+          a: view.a,
+          b: view.b,
+          length: view.length,
+          count: pulseCount(flow, view.length),
+          sign: (view.forward ? 1 : -1) * Math.sign(flow),
+        });
     }
     for (const node of state.nodes) {
-      const g = this.model(node, current, night);
-      g.position.set(node.x, 0, node.z);
-      g.userData.nodeId = node.id;
-      this.group.add(g);
-      if (selected === node.id) {
-        const ring = new THREE.Mesh(
-          new THREE.TorusGeometry(0.68, 0.035, 5, 32),
-          new THREE.MeshBasicMaterial({ color: 0x1d6a8c }),
-        );
-        ring.rotation.x = -Math.PI / 2;
-        ring.position.y = 0.1;
-        g.add(ring);
-      }
+      const view = this.nodeViews.get(node.id)!;
+      view.ring.visible = node.id === selected;
+      const on = current.served[node.id] ?? true;
+      view.group.traverse((object) => {
+        if (!(object instanceof THREE.Mesh)) return;
+        const material = object.material as THREE.MeshLambertMaterial;
+        if (object.name === 'walls')
+          material.color.setHex(on ? colours.wall : colours.off);
+        if (object.name === 'window') {
+          material.color.setHex(on ? 0xffcf8a : 0x44515b);
+          material.emissive.setHex(on ? 0xffcf8a : 0);
+          material.emissiveIntensity = on
+            ? 0.45 + daylightAt(visualStep).night * 1.8
+            : 0;
+        }
+        if (object.name === 'activity') object.visible = on;
+        if (object.name === 'gauge') {
+          const loading = current.loading['tx:' + node.id] ?? 0;
+          object.geometry.setDrawRange(
+            0,
+            Math.ceil(Math.min(1, loading) * 32) * 30,
+          );
+          material.color.setHex(
+            loading > 1
+              ? colours.over
+              : loading >= 0.8
+                ? colours.busy
+                : colours.cable,
+          );
+        }
+        if (object.name.startsWith('energy')) {
+          const capacity = node.kind === 'batteryQuick' ? 10 : 40,
+            fraction = (current.socKWh[node.id] ?? 0) / capacity;
+          const index = Number(object.name.slice(6)),
+            amount = Math.max(0, Math.min(1, fraction * 5 - index));
+          object.visible = amount > 0;
+          object.scale.y = Math.max(0.01, amount);
+        }
+      });
     }
   }
-  model(node: Node, current?: StepResult, night = false) {
+  setVisualTime(step: number) {
+    this.visualStep = step;
+    const light = daylightAt(step);
+    this.hemisphere.intensity = light.ambient;
+    this.hemisphere.color.set(light.ambientColour);
+    this.sun.intensity = light.sun;
+    this.sun.color.set(light.sunColour);
+    const key = light.skyTop + light.skyBottom;
+    if (key !== this.lightingKey) {
+      this.lightingKey = key;
+      this.canvas.style.background =
+        'radial-gradient(ellipse at 48% 34%, ' +
+        light.skyTop +
+        ' 0%, ' +
+        light.skyBottom +
+        ' 100%)';
+    }
+    for (const view of this.nodeViews.values())
+      view.group.traverse((o) => {
+        if (o instanceof THREE.Mesh && o.name === 'window') {
+          const material = o.material as THREE.MeshLambertMaterial;
+          if (material.emissive.getHex())
+            material.emissiveIntensity = 0.45 + light.night * 1.8;
+        }
+      });
+  }
+  model(node: Node) {
     const g = new THREE.Group();
     g.scale.set(0.84, 1, 0.84);
-    const powered = current?.served[node.id] ?? true,
-      active = powered || node.kind === 'grid' || node.kind === 'transformer';
+    const tagged = (
+      name: string,
+      x: number,
+      y: number,
+      z: number,
+      w: number,
+      h: number,
+      d: number,
+      c: number,
+    ) => {
+      const mesh = this.box(g, x, y, z, w, h, d, c);
+      mesh.name = name;
+      return mesh;
+    };
     if (node.kind === 'site') {
       this.box(g, 0, 0.13, 0, 1.2, 0.12, 1.2, colours.road);
       return g;
@@ -433,16 +649,7 @@ export class World {
       node.kind === 'workshop'
     ) {
       const width = node.kind === 'home' ? 0.76 : 1.02;
-      this.box(
-        g,
-        0,
-        0.46,
-        0,
-        width,
-        0.8,
-        width,
-        active ? colours.wall : colours.off,
-      );
+      tagged('walls', 0, 0.46, 0, width, 0.8, width, colours.wall);
       const roof = new THREE.Mesh(
         new THREE.ConeGeometry(width * 0.68, 0.55, 4),
         mat(colours.roof),
@@ -451,17 +658,43 @@ export class World {
       roof.rotation.y = Math.PI / 4;
       roof.castShadow = true;
       g.add(roof);
-      if (night && active)
-        this.box(
-          g,
-          -width * 0.24,
-          0.5,
-          width / 2 + 0.013,
-          0.22,
-          0.23,
-          0.025,
-          colours.spark,
+      for (const x of [-0.23, 0.23]) {
+        const window = tagged(
+          'window',
+          x * width,
+          0.53,
+          width / 2 + 0.02,
+          0.25,
+          0.28,
+          0.03,
+          0xffcf8a,
         );
+        (window.material as THREE.MeshLambertMaterial).emissive.setHex(
+          0xffcf8a,
+        );
+      }
+      const side = tagged(
+        'window',
+        width / 2 + 0.02,
+        0.53,
+        0,
+        0.03,
+        0.28,
+        0.28,
+        0xffcf8a,
+      );
+      (side.material as THREE.MeshLambertMaterial).emissive.setHex(0xffcf8a);
+      tagged(
+        'activity',
+        0,
+        0.73,
+        width * 0.62,
+        width * 0.75,
+        0.09,
+        0.3,
+        0x598875,
+      );
+      tagged('activity', 0, 0.22, width * 0.55, 0.19, 0.32, 0.1, 0x34424d);
     } else if (node.kind === 'grid') {
       this.box(g, 0, 0.45, 0, 1.2, 0.9, 1.2, colours.mv);
       this.box(g, 0, 1.1, 0, 1.5, 0.3, 1.5, colours.cable);
@@ -486,25 +719,12 @@ export class World {
         0.7,
         colours.mv,
       );
-      this.box(g, 0, 2.3, 0, 1.15, 0.08, 0.08, colours.cable);
-      const loading = current?.loading[`tx:${node.id}`] ?? 0;
+      this.box(g, 0, 2.3, 0, 1.35, 0.08, 0.08, colours.cable);
       const ring = new THREE.Mesh(
-        new THREE.TorusGeometry(
-          0.59,
-          0.065,
-          5,
-          32,
-          Math.PI * 2 * Math.min(1, loading),
-        ),
-        new THREE.MeshBasicMaterial({
-          color:
-            loading > 1
-              ? colours.over
-              : loading > 0.8
-                ? colours.busy
-                : colours.cable,
-        }),
+        new THREE.TorusGeometry(0.59, 0.065, 5, 32),
+        mat(colours.cable),
       );
+      ring.name = 'gauge';
       ring.rotation.x = -Math.PI / 2;
       ring.position.y = 0.11;
       g.add(ring);
@@ -515,33 +735,22 @@ export class World {
     } else if (node.kind === 'batteryQuick' || node.kind === 'batteryLong') {
       const w = node.kind === 'batteryQuick' ? 0.85 : 1.3;
       this.box(g, 0, 0.48, 0, w, 0.95, 0.8, colours.battery);
-      const e = current?.socKWh[node.id] ?? 0,
-        cap = node.kind === 'batteryQuick' ? 10 : 40;
-      this.box(
-        g,
-        0,
-        0.2,
-        0.415,
-        w * 0.72,
-        0.13,
-        0.015,
-        e > 0 ? 0x34b27b : colours.off,
-      );
+      this.box(g, 0, 0.2, 0.415, w * 0.72, 0.13, 0.015, 0x44515b);
       for (let i = 0; i < 5; i++)
-        if (e / cap > (i + 0.1) / 5)
-          this.box(
-            g,
-            -w * 0.28 + i * w * 0.14,
-            0.64,
-            0.42,
-            w * 0.1,
-            0.15,
-            0.02,
-            0x34b27b,
-          );
+        tagged(
+          'energy' + i,
+          -w * 0.28 + i * w * 0.14,
+          0.64,
+          0.42,
+          w * 0.1,
+          0.15,
+          0.02,
+          0x34b27b,
+        );
     } else if (node.kind === 'ev') {
       this.box(g, 0, 0.28, 0, 0.85, 0.33, 0.42, colours.wall);
       this.box(g, 0, 0.53, 0, 0.45, 0.26, 0.38, colours.solar);
+      tagged('window', 0, 0.33, 0.225, 0.3, 0.1, 0.025, 0xffcf8a);
     }
     return g;
   }
@@ -557,10 +766,12 @@ export class World {
       direction.normalize(),
     );
     this.group.add(mesh);
+    return mesh;
   }
   showGrid(visible: boolean) {
     this.grid.visible = visible;
-    if (!visible) return;
+    if (!visible || this.gridStage === this.state?.stage) return;
+    this.gridStage = this.state?.stage ?? 0;
     this.clear(this.grid);
     const b = this.bounds(),
       points: THREE.Vector3[] = [];
@@ -704,19 +915,45 @@ export class World {
   frame() {
     requestAnimationFrame(() => this.frame());
     const seconds = performance.now() * 0.001;
-    for (const dot of this.pulses.children) {
-      const d = dot.userData as {
-        a: THREE.Vector3;
-        b: THREE.Vector3;
-        index: number;
-        count: number;
-        flow: number;
-      };
-      const phase =
-        this.reduced || this.paused
-          ? d.index / d.count
-          : (seconds * 0.35 + d.index / d.count) % 1;
-      dot.position.copy(d.a).lerp(d.b, d.flow >= 0 ? phase : 1 - phase);
+    if (!this.paused && this.frameLast)
+      this.animationTime += Math.min(0.1, seconds - this.frameLast);
+    this.frameLast = seconds;
+    const mesh = this.reduced ? this.arrowMesh : this.pulseMesh;
+    if (this.pulseMesh) this.pulseMesh.visible = !this.reduced;
+    if (this.arrowMesh) this.arrowMesh.visible = this.reduced;
+    if (mesh) {
+      const object = new THREE.Object3D();
+      let index = 0;
+      for (const run of this.pulseRuns) {
+        const direction = run.b
+          .clone()
+          .sub(run.a)
+          .normalize()
+          .multiplyScalar(run.sign);
+        object.quaternion.setFromUnitVectors(
+          new THREE.Vector3(0, 1, 0),
+          direction,
+        );
+        for (
+          let i = 0;
+          i < run.count && index < mesh.instanceMatrix.count;
+          i++
+        ) {
+          const phase = pulsePhase(
+            this.animationTime,
+            run.length,
+            i,
+            run.count,
+            run.sign,
+            this.reduced,
+          );
+          object.position.copy(run.a).lerp(run.b, phase);
+          object.updateMatrix();
+          mesh.setMatrixAt(index++, object.matrix);
+        }
+      }
+      mesh.count = index;
+      mesh.instanceMatrix.needsUpdate = true;
     }
     this.renderer.render(this.scene, this.camera);
   }

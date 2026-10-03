@@ -8,10 +8,19 @@ The initial architecture and direction for implementation. The rules it implemen
 
 **Implemented web core (30 Sep 2026):** `src/game/{types,levels,commands,progression,save}.ts`,
 `src/content/{profiles,goals,witnesses}.ts`, `src/sim/{network,simulate}.ts`, `src/render/scene.ts` and
-`src/main.ts` provide the functioning six-stage game. `src/game/pointer.ts` now owns latched map gestures and
+`src/main.ts` provide the functioning six-stage game. The 3 Oct UX review pass extracts the concrete
+`game/session.ts` (committed/held state and undo), `game/controller.ts` (commands, persistence, playback and one
+refresh coordinator), `input/map-input.ts`, and `ui/{hud,tray,timeline,inspector,overlays}.ts`. Bootstrap remains
+in `main.ts`; no framework or new runtime dependency was added. `ui/dom.ts` skips unchanged sections and
+retains focus, text selection, Details and scroll on changed sections. `src/game/pointer.ts` now owns latched map gestures and
 `src/render/navigation.ts` owns tested ray-to-ground camera and grab math. The layout below records the longer architecture direction,
 not a claim that every proposed module, GLB, audio bus, native shell or performance tier exists. The current map
-uses procedural Three meshes, direct overhead line spans and Manhattan tile costs. `docs/LEVEL_AUDIT.md` records
+uses procedural Three meshes, direct overhead line spans and Manhattan tile costs. Render topology and grid
+are cached; step changes update materials, windows, loading gauges, battery fill, selection and instanced
+flow cues in place. `render/daylight.ts` interpolates visual time separately from the simulation cursor;
+`render/network-view.ts` owns deterministic visual attachment offsets shared by cables and signed flow cues.
+These offsets do not change stored coordinates, lengths, reach or electrical rules. `StepResult.demand`
+exposes the demand already computed by the simulator for UI inspection. `docs/LEVEL_AUDIT.md` records
 the tested witness results. The owner stopped this pass at the functioning web core.
 
 **Starting point.** Cool Places (`Z:/Projects/Repositories/CoolPlaces/coolplaces`) is the reference implementation

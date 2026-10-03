@@ -1,4 +1,11 @@
 :root {
+  --pp-stroke: 1px;
+  --pp-browse-height: 48px;
+  --pp-primary-height: 54px;
+  --pp-panel-width: 300px;
+  --pp-dock-width: 340px;
+  --pp-menu-width: 880px;
+  --pp-tray-max: 1040px;
   --pp-font: 'Manrope Variable', Manrope, ui-sans-serif, system-ui, sans-serif;
   --pp-ink-strong: #294a48;
   --pp-ink: #315c4d;

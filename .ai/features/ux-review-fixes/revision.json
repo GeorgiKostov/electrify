@@ -1,0 +1,168 @@
+{
+  "baseline": "be49785b34594dcc0cc0a2b5b52dadeff1a5a65e",
+  "scope": "changed source, tests, tools and owning docs/status; behavioral work uncommitted; task reports separate",
+  "sha256": "9df393ec8e225758f1bfe373d53ff60c97615d74e434935fe9370d0548f16860",
+  "sourceSha256": "a8830048b7ec384bc258ab0ac624a6a784c9c3d3f119d82ac72c1faa6751d78a",
+  "files": [
+    {
+      "path": "PROJECT_STATUS.md",
+      "sha256": "3189af8b0ab3533e7159aebad893a3d51055f5473d41e08f1785615afb97dc2c",
+      "untracked": false
+    },
+    {
+      "path": "docs/ARCHITECTURE.md",
+      "sha256": "977044911fd5ed2b8de70eb278f1d1d33ebfd564c9a44cbb30015378bbd7f465",
+      "untracked": false
+    },
+    {
+      "path": "docs/DESIGN_LANGUAGE.md",
+      "sha256": "0470a3b431041e7e4fb4269373f7e8f9f5fed0e91f42aed314bd1cf9f8477eb3",
+      "untracked": false
+    },
+    {
+      "path": "docs/MVP_SPEC.md",
+      "sha256": "4641df5fe21f33073ace6ef3234cb437310189fb9a7bc0e093045ce4d80e6c09",
+      "untracked": false
+    },
+    {
+      "path": "src/content/copy/en.ts",
+      "sha256": "a8f3ecf320b8349f03fa86787fa93bf939b7041b1c45895dec900454fe9872a4",
+      "untracked": false
+    },
+    {
+      "path": "src/game/controller.ts",
+      "sha256": "3c5cb39fc7c59bb316b85e7f52724f163902f2aa2f427c32b95965581063ab2c",
+      "untracked": true
+    },
+    {
+      "path": "src/game/session.ts",
+      "sha256": "f43352519f331ef2aba56650cede6b300b1578cc08e65a629788e788f0eb416f",
+      "untracked": true
+    },
+    {
+      "path": "src/game/types.ts",
+      "sha256": "34059405f8ae50bd0fadb320cda908ae9ec2d4745020236745dcb1b0e9904430",
+      "untracked": false
+    },
+    {
+      "path": "src/input/map-input.ts",
+      "sha256": "68abfcfd5891be9958b591e7342ea9c024707037c2939a92953f48244feeebae",
+      "untracked": true
+    },
+    {
+      "path": "src/main.ts",
+      "sha256": "276ca039c4d2a79288595ed6060291c1180cb1463672a4057397ad27ef697781",
+      "untracked": false
+    },
+    {
+      "path": "src/render/daylight.ts",
+      "sha256": "006992b9cba644741ecab19c4f203ea28c0cc835c603bac31f5856cffee67c8d",
+      "untracked": true
+    },
+    {
+      "path": "src/render/network-view.ts",
+      "sha256": "4e8be3ae30fbd41cdd55c220b2af39fd0884e52ea46816e0ac8f72466cb1926b",
+      "untracked": true
+    },
+    {
+      "path": "src/render/scene.ts",
+      "sha256": "d3bbb9fdf534fe22e4557acd83296498f8ea10fab0d45a8e4966436a20aeeeb4",
+      "untracked": false
+    },
+    {
+      "path": "src/sim/simulate.ts",
+      "sha256": "de30cba74e08977c69490684fbda3bac199862d48f2053d0cfb5913c04a4eb81",
+      "untracked": false
+    },
+    {
+      "path": "src/ui/chart.ts",
+      "sha256": "fab35b661f2744a3705bce099e8eec06de449d900530c34c51bda8ad4fd7b83e",
+      "untracked": true
+    },
+    {
+      "path": "src/ui/common.ts",
+      "sha256": "d314760c35ccce11ea36fb5c8a04585f45d2341e820c0237e532337600d1220a",
+      "untracked": true
+    },
+    {
+      "path": "src/ui/dom.ts",
+      "sha256": "1cf207173d14d45f31cb318d1002b5faa912df09df530d7b12475e1047ab00bc",
+      "untracked": true
+    },
+    {
+      "path": "src/ui/hud.ts",
+      "sha256": "3526cb6775e7f1d0ff6fa40a5413a4e0d429d18eb035e1cd74317723f0aec775",
+      "untracked": true
+    },
+    {
+      "path": "src/ui/icons.css",
+      "sha256": "4cbb60f9c86b35993c86d32758df3b880b993c11824b22120d71de1652ba7944",
+      "untracked": false
+    },
+    {
+      "path": "src/ui/inspector.ts",
+      "sha256": "8812c40806982f9b40b64e74422c680af6d2b1d40b1423cb315864989ec415ea",
+      "untracked": true
+    },
+    {
+      "path": "src/ui/load-details.ts",
+      "sha256": "7a5d585800a8c6aa221b22ddd840aaab9e2230958c97d50a6b3d88ec3046bcc9",
+      "untracked": true
+    },
+    {
+      "path": "src/ui/overlays.ts",
+      "sha256": "7d3a0f7aacea1b8e1baea8382df5b033cea8c02223ac7aff77507723b5526560",
+      "untracked": true
+    },
+    {
+      "path": "src/ui/style.css",
+      "sha256": "e93754f9533a2c86e052529f0a468de6fe3a5c67013a0b4be5f7aba8f9396e47",
+      "untracked": false
+    },
+    {
+      "path": "src/ui/timeline.ts",
+      "sha256": "da905f650c358f1ca6baa584da7303d2279678e789f9fb1e7fb802befde865ae",
+      "untracked": true
+    },
+    {
+      "path": "src/ui/tokens.css",
+      "sha256": "34c0559fa6a0d0be834013cc95e2af46dbb6b3a65b907467f4c958191fbae972",
+      "untracked": false
+    },
+    {
+      "path": "src/ui/tray.ts",
+      "sha256": "98531dc17430870a7a2beae6a0fb70bf543a5d3523a6fcf3adaa604825b1e191",
+      "untracked": true
+    },
+    {
+      "path": "tests/icons.test.ts",
+      "sha256": "112f2ef382d0715bb83e6deba54cbfaa89731898f4e0709dedabfbcff862f8b6",
+      "untracked": false
+    },
+    {
+      "path": "tests/preview-cancellation.test.ts",
+      "sha256": "516bfb4e9093b88a87657799bd4be9407e11dbefb26c8e67d2ffe058444eb1fb",
+      "untracked": false
+    },
+    {
+      "path": "tests/ui-fixture.ts",
+      "sha256": "8c80255ac86a282d0d22badfc7d9ff4435ea02fc57e4829685a5ac6173d51ab2",
+      "untracked": true
+    },
+    {
+      "path": "tests/ux-review.test.ts",
+      "sha256": "2b357f68808b40fa6818e21594419b17fe007eea91fd67dd5d1171cf68a2cec3",
+      "untracked": true
+    },
+    {
+      "path": "tests/windows.test.ts",
+      "sha256": "0a69e3708710e74e32d346706dbf73894d3b6c617e9612750619ed3bac6cb6c1",
+      "untracked": false
+    },
+    {
+      "path": "tools/generate-icons.ts",
+      "sha256": "13c28a51c56f111f95bb3d60c8c4901ecee3915bda3aa02560d93a0c2612930c",
+      "untracked": false
+    }
+  ]
+}

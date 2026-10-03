@@ -15,6 +15,21 @@
   line-height: 1;
   -webkit-font-smoothing: antialiased;
 }
+.ph.ph-path:before {
+  content: '\e39c';
+}
+.ph.ph-arrows-left-right:before {
+  content: '\e0a0';
+}
+.ph.ph-arrows-horizontal:before {
+  content: '\eb06';
+}
+.ph.ph-plug:before {
+  content: '\e946';
+}
+.ph.ph-lightning-slash:before {
+  content: '\e2e0';
+}
 .ph.ph-caret-left:before {
   content: '\e138';
 }

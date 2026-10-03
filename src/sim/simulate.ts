@@ -337,6 +337,7 @@ export function simulate(state: State): DayResult {
         loading[eid] = abs(flow) / (tree.edgeById.get(eid)?.capacity ?? 1);
       const record: StepResult = {
         step,
+        demand,
         flow: pass.flow,
         requested,
         loading,

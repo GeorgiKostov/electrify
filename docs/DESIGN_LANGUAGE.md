@@ -129,10 +129,10 @@ control and tray families keep the reference values. Electrical semantic colours
 - View controls form a group of three 44 px Phosphor buttons: minus, four corners (Fit view), plus. Each has an
   accessible name and tooltip; the coach and help explain the four-corner button and keyboard 0. The group sits
   at the lower right on desktop; 850–1049 px desktop widths place it below Resources at the upper right to keep
-  the tool tray clear. Phones use the compact title row. Goal text and teaching flow at full width
-  beneath that row. Short landscape places the bottom controls beside the scene, following Cool Places' layout.
+  the tool tray clear. Phones place the group at the lower right above the tray, with goal text and teaching
+  at full width. Expanded phone timelines temporarily hide the camera group; Collapse restores it. Short landscape places the bottom controls beside the scene, following Cool Places' layout.
 - Fit uses projected world bounds within a measured frame below the heading. Desktop always reserves the context
-  column; phone reserves 152 px above the compact bottom controls. Panel visibility changes only the stored frame,
+  column; phone reserves 64 px above the compact bottom controls for camera targets. Panel visibility changes only the stored frame,
   keeping the current projection stable. Short landscape reserves the right control column horizontally and
   the lower-left camera controls vertically, leaving the scene the full height above those controls. The first
   stage displays the initial small island; growth widens it.
@@ -162,6 +162,13 @@ Short landscape (`height < 481`) places the tools at the right. Verify at 320 ×
 844 × 390, 1280 × 720 and 1920 × 1080. Phone scrub and speed controls live in the expanded timeline to keep the
 compact Run / Check actions readable.
 
+Line confirmation is explicit at the target, with the existing keyboard controls retained in Details. After a
+commit the line tool stays armed and the target becomes the next source; cumulative LV reach still applies.
+Change start clears the source without leaving the tool. Escape or a stationary secondary click leaves line
+mode; a secondary drag pans. Hovered, source and target labels suppress text while every unpowered load keeps
+its plug badge clear of the port. Inspectors show authoritative current demand, need interval, peak time,
+connections and whether the cause is a missing line, an upstream trip or no demand now.
+
 ## 5. Components
 
 | Family | Current port | Used for |
@@ -179,9 +186,13 @@ compact Run / Check actions readable.
 | Map label | Quiet white capsule with text | Selected object and current problems |
 
 The current procedural core uses Phosphor tool glyphs. Home and stage cards use captures of the actual electrical
-scene. Tool costs share the same aligned 16 px coin glyph and 12 px numeral treatment as resource and preview
+scene: chapter covers use their completed audited layout and chapter focus time, so Evening rush shows dusk
+and Sunny field shows the solar field at noon. Missing covers retain their placeholder until the image is ready,
+without rebuilding the menu. Home fits its content on desktop, has no ambiguous close action and puts the
+archiving new-campaign action below the regular utilities. Tool costs share the same aligned 16 px coin glyph and 12 px numeral treatment as resource and preview
 costs. Line tiles explicitly say / tile. Select and navigation carry no zero-cost badge. More tools starts at the
-first tile when explicitly opened or closed; ordinary refreshes retain horizontal browsing position. Asset
+first tile when explicitly opened or closed; ordinary refreshes retain horizontal browsing position. Transformer tiles say Small or Large transformer, show capacity and use distinct glyphs. Desktop rows wrap
+before scrolling; compact screens retain horizontal browsing. Asset
 thumbnails remain an art-pass concern; no Cool Places building imagery belongs in this game.
 
 ### 5.1 Timeline
@@ -191,7 +202,12 @@ expand control. Expanded graphs and schedule lanes are optional. Battery and rob
 committed command path as timeline lanes, so keyboard alternatives obey the same capabilities. Expanded
 timelines suppress the teaching paragraph on narrow screens. In short landscape the details scroll within the
 available height, keeping Run, Check and Collapse visible beneath the header. Robotaxi Start uses the labelled
-schedule-control layout.
+schedule-control layout, with legal minimum and maximum start times and a next-day annotation after midnight.
+
+The expanded desktop timeline is an opaque 340 px right dock, bounded to the viewport height minus five
+control heights; its details scroll while Run, Check and Collapse stay reachable. Phone details are bounded
+to 40 svh or six control heights, whichever is smaller. Demand, grid import and solar share one kW scale;
+the dashed threshold is labelled Grid connection limit. Hour ticks and Now follow the scrubber.
 
 ### 5.2 Menu and settings (Cool Places pattern)
 

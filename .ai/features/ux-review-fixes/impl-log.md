@@ -1,0 +1,17 @@
+# Implementation log — UX/UI review fixes
+
+Sol 6.1 is the sole implementation writer. Astra planning critique was integrated; independent fresh Astra review returned one P2 finding, corrected in round 1. The user authorized every review finding without an extra implementation approval gate.
+
+Baseline cabf9f0 and formatting-only be49785 are local commits. Existing saves, historical task outputs and electrical balance are preserved. Behavioral changes remain uncommitted. No new dependency, push or deployment.
+
+Implemented keyframed day/night, stronger powered daytime state, all-unpowered badges, retained idle flow animation and reduced-motion direction cues, visual cable endpoints, explicit target-local line confirmation and chained armed tools. Added authoritative inspector demand, timing, connectivity and outage reasons; a shared-scale annotated timeline; legal schedule labels including midnight; opaque bounded docks; responsive tray, camera and coach; Home and cover polish. Five CSS type tokens and reused spacing/control dimensions replace scattered UI values.
+
+Extracted a concrete game session, command/persistence/playback controller with one refresh, map input, and HUD/tray/timeline/inspector/overlay modules with small DOM/chart/load helpers. Stable sections preserve exact DOM; changed sections preserve focus, selection, Details and scroll. Renderer topology/grid caching updates materials, battery fill, loading gauges, selection and instanced pulses in place. Cover generation restores the camera and patches image sources only.
+
+Validation: 66 tests pass (52 prior tests retained or migrated plus 14 behavioral/data/real-Three regressions). Final typecheck, 218 copy strings, six sequential audit witnesses and production build pass. Witness cost, import, loss, solar and EV metrics remain identical. The existing production chunk warning remains at approximately 587 kB. Production event handlers execute with host adapters mocked; the former VM/AST main-function extraction is removed. Generated 51 Phosphor glyphs; coverage scans every production module.
+
+Coordinator acceptance uses separate origin 5187 to preserve the user's 5186 save. It played all six stages and checked 320×640, 390×844, 844×390, 1280×720, 1920×1080 plus 375×812, 1280×800 and 900×800. Successful full animated stage-1 and stage-6 days reached completion and stars; stage 6 was repeated after extraction. Idle moving dots, reduced-motion arrows, midnight schedule reload and focused region selection passed. Screenshots include ux-review-stage6-desktop.png and ux-review-stage6-phone.png in the coordinator workspace, plus the moving-pulse pair.
+
+Early preview corrections addressed night HUD contrast, a transformed ancestor placing the dock offscreen, missing glyphs and UTF-8 text, effective SVG type size, expanded phone camera ownership, compact Run bar and landscape precedence. Astra R1 identified internal timeline scrolling on a lower-lane edit; a stable scroll key and production regression address it. Coordinator browser recheck passed: lower taxi edits retain scroll and focus. Astra R1 re-review passed; Astra verified the exact final revision and passed with no outstanding findings.
+
+See finding-checklist.md for every finding and evidence, revision.json for exact hashes and included new files, coordinator-acceptance.md for browser evidence, and correction-round-1.md for R1. No physical-device frame-rate benchmark or real touch hardware run is claimed.

@@ -1,5 +1,13 @@
 export const copy = {
   title: 'Power Places',
+  changeStart: 'Change start',
+  needsPower: 'Needs power',
+  peakAt: 'Peak at',
+  upstreamTrip: 'Power stopped upstream',
+  idle: 'No demand now',
+  allDay: 'All day',
+  nextDay: 'next day',
+  gridConnectionLimit: 'Grid connection limit',
   tagline: 'Build the grid. Grow the place. See how it works.',
   house: 'Home',
   workshop: 'Workshop',
@@ -55,8 +63,8 @@ export const copy = {
   tool: 'Tool',
   lineLV: 'Low-voltage line',
   lineMV: 'Medium-voltage line',
-  transformerS: 'Transformer S',
-  transformerL: 'Transformer L',
+  transformerS: 'Small transformer',
+  transformerL: 'Large transformer',
   solar: 'Solar field',
   quick: 'Battery Quick',
   long: 'Battery Long',
@@ -212,7 +220,7 @@ export const copy = {
   lesson6:
     'Connect the depot transformer. Select robotaxis to spread their charging times.',
   helpConnection:
-    'Choose a line, then tap its start and end. Confirm the connection below.',
+    'Choose a line, then tap its start and end. Confirm beside its end.',
   helpPlacement:
     'Hover or drag over a tile. Green is ready; red shows why. Click or tap, then confirm below.',
   helpGrab: 'Drag to move; confirm below.',

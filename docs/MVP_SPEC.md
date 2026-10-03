@@ -233,6 +233,13 @@ tool, but guidance follows the objects currently present. All command and keyboa
 - **Stars:** Lights on, Thrifty.
 - **Field note:** *Where does it come from?* Power stations far away feed the grid.
 
+**Implemented UX refinement (3 Oct 2026):** confirmed lines keep the tool armed and chain from the last target,
+with target-local confirmation and a Change start action. Cumulative LV reach, costs and cancellation rules
+remain unchanged. Powered windows/day activity and unpowered plug badges show the result at every time.
+The timeline uses a shared labelled kW scale, Now cursor and actual grid-connection threshold. Per-load
+inspection reads current demand, timing and connectivity from the authoritative day result. See
+[DESIGN_LANGUAGE.md §4–5](DESIGN_LANGUAGE.md#4-layout) for responsive controls and dock ownership.
+
 ### Stage 2 — The far farm *(voltage and transformers)*
 
 - **Start:** the farm across the river asks for power. It is 10 tiles from the transformer.

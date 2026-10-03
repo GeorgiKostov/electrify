@@ -60,6 +60,7 @@ export interface Diagnostic {
 }
 export interface StepResult {
   step: number;
+  demand: Record<string, number>;
   flow: Record<string, number>;
   requested: Record<string, number>;
   loading: Record<string, number>;
