@@ -1,0 +1,8 @@
+.ai/
+.agents/
+.claude/
+.local/
+seed/
+docs/
+.env*
+*.log
