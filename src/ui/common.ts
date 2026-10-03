@@ -109,6 +109,11 @@ export function helpers(session: Session) {
     let index: string | number | undefined;
     if (n.id.startsWith('street')) index = Number(n.id.slice(6)) + 2;
     else if (n.id.startsWith('hill')) index = Number(n.id.slice(4)) + 14;
+    else if (n.id.startsWith('p'))
+      index =
+        session.state.nodes
+          .filter((other) => other.id.startsWith('p') && other.kind === n.kind)
+          .findIndex((other) => other.id === n.id) + 1;
     else if (n.id !== 'daycab' && /\d/.test(n.id))
       index = n.id.replace(/\D/g, '');
     return (tr(key) + ' ' + (index ?? '')).trim();

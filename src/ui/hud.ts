@@ -142,10 +142,19 @@ export function createHud(
       session.lineStart,
       session.pending?.type === 'connect' ? session.pending.b : undefined,
     ]);
-    const badges = unpowered
-      .map((n) => {
-        const p = world.project(n.x, n.z, 1.9);
-        return `<span class="map-badge" style="left:${p.x}px;top:${p.y}px" aria-label="${name(n)} · ${copy.unpowered}" title="${name(n)} · ${copy.unpowered}">${icon('plug')}</span>`;
+    const clusters: { x: number; y: number; nodes: typeof unpowered }[] = [];
+    for (const node of unpowered) {
+      const p = world.project(node.x, node.z, 1.9);
+      const cluster = clusters.find(
+        (q) => Math.hypot(q.x - p.x, q.y - p.y) < 48,
+      );
+      if (cluster) cluster.nodes.push(node);
+      else clusters.push({ ...p, nodes: [node] });
+    }
+    const badges = clusters
+      .map((cluster) => {
+        const label = `${cluster.nodes.map(name).join(', ')} · ${copy.unpowered}`;
+        return `<span class="map-badge" style="left:${cluster.x}px;top:${cluster.y}px" aria-label="${label}" title="${label}">${icon('plug')}${cluster.nodes.length > 1 ? `<small>×${cluster.nodes.length}</small>` : ''}</span>`;
       })
       .join('');
     const failed = all.nodes.filter(

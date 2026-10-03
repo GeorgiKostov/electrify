@@ -2,7 +2,7 @@ import { patch } from '../ui/dom';
 
 import { archivedCampaign, archivedCampaigns } from '../game/save';
 
-import { starTargets } from '../content/goals';
+import { stars, starTargets } from '../content/goals';
 
 import {
   copy,
@@ -33,7 +33,7 @@ export function createOverlays(
     'refresh' | 'stopRun' | 'cancelGesture' | 'clearPreview'
   >,
 ) {
-  const { time, lesson, name, starList, cover } = helpers(session);
+  const { time, lesson, name, cover } = helpers(session);
   const { app, dialog, world, el } = view;
   function closeOverlay() {
     const starting = session.overlay === 'home';
@@ -133,13 +133,38 @@ export function createOverlays(
       session.overlay === 'confirm-restore'
     )
       body = `<h1 id="menu-title">${session.overlay === 'new-campaign' ? copy.newCampaign : copy.restoreCampaign}</h1><p>${session.overlay === 'new-campaign' ? copy.introNewCampaign : copy.introRestore}</p><div class="completion-actions">${button(session.overlay === 'new-campaign' ? 'confirm-new' : 'confirm-restore', session.overlay === 'new-campaign' ? copy.startOver : copy.restorePrevious, 'arrow-counter-clockwise', 'menu-primary')}${button('back', copy.back, 'caret-left', 'browse-chapters')}</div>`;
-    else if (session.overlay === 'complete')
-      body = `<p class="menu-eyebrow">${stageTitle(session.state.stage)}</p><h1 id="menu-title">${copy.checkGood}</h1><p class="stars">${starList()
-        .map((s) => `${icon('star')} ${s}`)
+    else if (session.overlay === 'complete') {
+      const earned = stars(session.state.stage, session.result);
+      const targets: Record<string, number> =
+        starTargets[session.state.stage - 1];
+      const all = [
+        { key: 'Lights on', label: copy.lights, available: true },
+        {
+          key: 'Thrifty',
+          label: copy.thrifty,
+          available: targets.thrifty !== undefined,
+        },
+        {
+          key: 'Clean',
+          label: copy.clean,
+          available:
+            targets.cleanHeat !== undefined || targets.cleanGrid !== undefined,
+        },
+        {
+          key: 'No waste',
+          label: copy.noWaste,
+          available: targets.noWaste !== undefined,
+        },
+      ];
+      body = `<p class="menu-eyebrow">${stageTitle(session.state.stage)}</p><h1 id="menu-title">${copy.checkGood}</h1><div class="completion-stars">${all
+        .map((star, i) => {
+          const won = earned.includes(star.key as (typeof earned)[number]);
+          return `<div class="completion-star ${won ? 'earned' : ''} ${star.available ? '' : 'unavailable'}" style="--star-delay:${i * 100}ms"><i class="${won ? 'ph-fill' : 'ph'} ph-star" aria-hidden="true"></i><span>${star.label}</span><small>${won ? copy.earnedStar : star.available ? copy.missedStar : copy.otherStageStar}</small></div>`;
+        })
         .join(
-          ' · ',
-        )}</p><div class="help-tools"><p>${fieldNote(session.state.stage)}</p></div><div class="completion-actions">${button('next', session.state.stage === 6 ? copy.home : copy.next, 'caret-right', 'menu-primary')}${button('overlay-close', copy.replay, 'clock-counter-clockwise', 'browse-chapters')}</div><p>${copy.helpReplay}</p>`;
-    else if (session.overlay === 'diagnosis') {
+          '',
+        )}</div><div class="help-tools"><p>${fieldNote(session.state.stage)}</p></div><div class="completion-actions">${button('next', session.state.stage === 6 ? copy.home : copy.next, 'caret-right', 'menu-primary')}${button('restart', copy.replay, 'clock-counter-clockwise', 'browse-chapters')}</div>`;
+    } else if (session.overlay === 'diagnosis') {
       const d = session.result.firstFailure,
         solarGoal =
           session.state.stage === 4 &&

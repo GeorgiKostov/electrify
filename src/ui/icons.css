@@ -168,3 +168,17 @@
 .ph.ph-x:before {
   content: '\e4f6';
 }
+
+@font-face {
+  font-family: PhosphorFill;
+  src: url('../../node_modules/@phosphor-icons/web/src/fill/Phosphor-Fill.woff2')
+    format('woff2');
+  font-display: block;
+}
+.ph-fill {
+  font-family: PhosphorFill !important;
+  font-style: normal;
+}
+.ph-fill.ph-star:before {
+  content: '\e46a';
+}

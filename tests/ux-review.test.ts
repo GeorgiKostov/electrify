@@ -162,12 +162,12 @@ test('timeline series share one kW scale and label the actual grid threshold', (
   const day = simulate(solved[5]),
     scale = chartScale(day);
   assert.ok(scale >= 200);
-  assert.equal(chartPoints([100], 200), '80,94');
-  assert.equal(chartPoints([50], 200), '80,127');
+  assert.equal(chartPoints([100], 200), '60,94');
+  assert.equal(chartPoints([50], 200), '60,127');
   const chart = timelineChart(day, 48, false, true);
   assert.match(chart, /Grid import/);
   assert.match(chart, /Grid connection limit.*200 kW/);
-  assert.match(chart, /id="chart-now"[^>]*x1="220"/);
+  assert.match(chart, /id="chart-now"[^>]*x1="210"/);
   assert.match(chart, /00:00/);
   assert.match(chart, /12:00/);
 });
@@ -235,7 +235,7 @@ test('step, selection, schedule and grid visibility updates retain meshes; layou
   const state = solved[4],
     day = simulate(state),
     world = worldFixture();
-  world.draw(state, day, 48);
+  world.draw(state, day, 48, undefined, 48, 0);
   world.showGrid(true);
   const group = world.nodeViews.get('h1')!.group,
     cable = world.lineViews.get(state.lines[0].id)!.meshes[0],
@@ -243,7 +243,7 @@ test('step, selection, schedule and grid visibility updates retain meshes; layou
     pulse = world.pulseMesh,
     battery = state.nodes.find((n) => n.kind === 'batteryLong')!,
     energy = world.nodeViews.get(battery.id)!.group.getObjectByName('energy0')!;
-  world.draw(state, day, 76, 'h1', 76.5);
+  world.draw(state, day, 76, 'h1', 76.5, 0);
   assert.equal(world.nodeViews.get('h1')!.group, group);
   assert.equal(world.lineViews.get(state.lines[0].id)!.meshes[0], cable);
   assert.equal(world.pulseMesh, pulse);
@@ -257,11 +257,11 @@ test('step, selection, schedule and grid visibility updates retain meshes; layou
   assert.equal(world.grid.children[0], grid);
   const schedule = structuredClone(state);
   schedule.batteries[battery.id].discharge = [72, 88];
-  world.draw(schedule, simulate(schedule), 80);
+  world.draw(schedule, simulate(schedule), 80, undefined, 80, 0);
   assert.equal(world.nodeViews.get('h1')!.group, group);
   const moved = structuredClone(schedule);
   moved.nodes.find((n) => n.id === battery.id)!.x++;
-  world.draw(moved, simulate(moved), 80);
+  world.draw(moved, simulate(moved), 80, undefined, 80, 1);
   assert.notEqual(world.nodeViews.get('h1')!.group, group);
   world.clear(world.group);
   world.clear(world.pulses);

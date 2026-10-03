@@ -38,7 +38,7 @@ export function createController(
 ) {
   const { app, canvas, dialog, world, el } = view;
   const { time, now, lesson, mapUIVisible, goalMet } = helpers(session);
-  const actions = {
+  const core = {
     stopRun,
     clearStageInteraction,
     persist,
@@ -52,26 +52,39 @@ export function createController(
     runFrame,
     refreshWorld,
     refresh,
-  } as Actions;
-  const hud = createHud(session, view, actions);
+  };
+  const hud = createHud(session, view, { persist });
   const { coach, advanceCoach, labels, measureLayout } = hud;
-  Object.assign(actions, hud);
   const trayUI = createTray(session, view);
   const { tray, refreshPlacement, updateLineConfirm } = trayUI;
-  Object.assign(actions, trayUI);
-  const timelineUI = createTimeline(session, view, actions);
+  const timelineUI = createTimeline(session, view, { measureLayout });
   const { timeline, refreshTimelineTime } = timelineUI;
-  Object.assign(actions, timelineUI);
   const inspectorUI = createInspector(session, view);
   const { inspector } = inspectorUI;
-  Object.assign(actions, inspectorUI);
-  const overlays = createOverlays(session, view, actions);
+  const overlays = createOverlays(session, view, {
+    refresh,
+    stopRun,
+    cancelGesture: () => mapInput.cancelGesture(),
+    clearPreview: () => mapInput.clearPreview(),
+  });
   const { closeOverlay, showOverlay, backOverlay } = overlays;
-  Object.assign(actions, overlays);
-  const mapInput = createMapInput(session, view, actions, keyboard);
+  const mapInput = createMapInput(
+    session,
+    view,
+    { ...core, ...hud, ...trayUI, ...timelineUI, ...inspectorUI, showOverlay },
+    keyboard,
+  );
   const { clearCandidate, clearPreview, preview, context, cancelGesture } =
     mapInput;
-  Object.assign(actions, mapInput);
+  const actions: Actions = {
+    ...core,
+    ...hud,
+    ...trayUI,
+    ...timelineUI,
+    ...inspectorUI,
+    ...overlays,
+    ...mapInput,
+  };
   function stopRun() {
     session.running = false;
     session.runFraction = 0;
@@ -120,7 +133,18 @@ export function createController(
       refreshPlacement();
       return;
     }
-    session.lineStart = command.type === 'connect' ? command.b : undefined;
+    const target =
+      command.type === 'connect'
+        ? session.state.nodes.find((n) => n.id === command.b)
+        : undefined;
+    session.lineStart =
+      command.type === 'connect'
+        ? target?.kind === 'home' ||
+          target?.kind === 'transformer' ||
+          target?.kind === 'grid'
+          ? command.b
+          : command.a
+        : undefined;
     if (command.type === 'connect') {
       session.tool = command.tier;
       session.selected = undefined;
@@ -150,6 +174,7 @@ export function createController(
     if (!next) return;
     clearStageInteraction();
     session.state = next;
+    session.revision++;
     session.result = simulate(session.state);
     session.cursor = stageFocus[stage - 1];
     saveNow();
@@ -234,12 +259,14 @@ export function createController(
     const visible = mapUIVisible();
     world.reduced = session.save.settings.reduced;
     world.paused = !!session.overlay || session.menuOpen;
+    world.building = !session.running;
     world.draw(
       visible ? (session.previewState ?? session.state) : session.state,
       visible ? (session.previewResult ?? session.result) : session.result,
       session.cursor,
       visible ? session.selected : undefined,
       session.cursor + (session.running ? session.runFraction : 0),
+      session.previewState && visible ? session.previewState : session.revision,
     );
     context();
     updateLineConfirm();
@@ -251,6 +278,7 @@ export function createController(
   }
   function refresh() {
     app.classList.toggle('window-open', !!session.overlay || session.menuOpen);
+    app.classList.toggle('reduced-motion', session.save.settings.reduced);
     actions.header();
     actions.goal();
     actions.tray();
@@ -381,6 +409,7 @@ export function createController(
       session.coachStep = -1;
       session.save = next;
       session.state = session.save.state;
+      session.revision++;
       session.result = simulate(session.state);
       session.cursor = stageFocus[session.state.stage - 1];
       session.campaignExists = true;
@@ -435,6 +464,7 @@ export function createController(
       const entry = session.save.entries[session.state.stage];
       if (entry) {
         clearStageInteraction();
+        session.cursor = stageFocus[session.state.stage - 1];
         setState(structuredClone(entry));
         closeOverlay();
       }

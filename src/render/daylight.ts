@@ -14,10 +14,10 @@ const keys = [
     step: 22,
     ambient: 0.8,
     sun: 0.65,
-    ambientColour: '#b7a6ad',
-    sunColour: '#ffc08a',
-    skyTop: '#c6b3aa',
-    skyBottom: '#6f8097',
+    ambientColour: '#dce8e4',
+    sunColour: '#ffe0cc',
+    skyTop: '#f4cbb8',
+    skyBottom: '#b5cbdc',
     night: 0.8,
   },
   {
@@ -52,13 +52,13 @@ const keys = [
   },
   {
     step: 72,
-    ambient: 0.7,
-    sun: 0.6,
+    ambient: 1.25,
+    sun: 1.1,
     ambientColour: '#91a5c9',
     sunColour: '#a9b9ed',
     skyTop: '#455875',
     skyBottom: '#26384d',
-    night: 0.75,
+    night: 0.55,
   },
   {
     step: 84,
@@ -81,7 +81,7 @@ const keys = [
     night: 1,
   },
 ];
-export function daylightAt(step: number) {
+export function daylightAt(step: number, building = false) {
   const local = ((step % 96) + 96) % 96,
     index = keys.findIndex((k, i) => i > 0 && k.step >= local),
     b = keys[index < 1 ? 1 : index],
@@ -90,13 +90,18 @@ export function daylightAt(step: number) {
     mix = (x: number, y: number) => x + (y - x) * t;
   const colour = (x: string, y: string) =>
     '#' + new Color(x).lerp(new Color(y), t).getHexString();
+  const held = building && mix(a.night, b.night) > keys[5].night;
   return {
-    ambient: mix(a.ambient, b.ambient),
-    sun: mix(a.sun, b.sun),
-    night: mix(a.night, b.night),
-    ambientColour: colour(a.ambientColour, b.ambientColour),
-    sunColour: colour(a.sunColour, b.sunColour),
-    skyTop: colour(a.skyTop, b.skyTop),
-    skyBottom: colour(a.skyBottom, b.skyBottom),
+    ambient: Math.max(building ? 1.25 : 0, mix(a.ambient, b.ambient)),
+    sun: Math.max(building ? 1.1 : 0, mix(a.sun, b.sun)),
+    night: building
+      ? Math.min(keys[5].night, mix(a.night, b.night))
+      : mix(a.night, b.night),
+    ambientColour: held
+      ? keys[5].ambientColour
+      : colour(a.ambientColour, b.ambientColour),
+    sunColour: held ? keys[5].sunColour : colour(a.sunColour, b.sunColour),
+    skyTop: held ? keys[5].skyTop : colour(a.skyTop, b.skyTop),
+    skyBottom: held ? keys[5].skyBottom : colour(a.skyBottom, b.skyBottom),
   };
 }

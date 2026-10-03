@@ -47,7 +47,7 @@ export function createTimeline(
                   n.kind === 'ev'
                     ? (session.state.evStarts[n.id] ?? n.window![0])
                     : (session.state.batteries[n.id]?.discharge[0] ?? 68);
-              return `<div class="lane"><strong>${name(n)}</strong><span class="lane-value">${scheduleTime(start, session.save.settings.twelve)}</span><div class="lane-slider"><input type="range" min="${range.min}" max="${range.max}" step="1" value="${start}" data-lane="${n.id}" aria-label="${copy.start} ${name(n)}"><div class="lane-endpoints"><span>${scheduleTime(range.min, session.save.settings.twelve)}</span><span>${scheduleTime(range.max, session.save.settings.twelve)}</span></div></div></div>`;
+              return `<div class="lane compact-lane"><strong>${name(n)}</strong><span class="lane-value">${scheduleTime(start, session.save.settings.twelve)}</span><div class="lane-slider"><input type="range" min="${range.min}" max="${range.max}" step="1" value="${start}" data-lane="${n.id}" aria-label="${copy.start} ${name(n)}" aria-valuetext="${scheduleTime(start, session.save.settings.twelve)}" title="${scheduleTime(range.min, session.save.settings.twelve)} – ${scheduleTime(range.max, session.save.settings.twelve)}"><div class="lane-endpoints"><span>${scheduleTime(range.min, session.save.settings.twelve)}</span><span>${scheduleTime(range.max, session.save.settings.twelve)}</span></div></div></div>`;
             })
             .join('')}</div>`
         : '';

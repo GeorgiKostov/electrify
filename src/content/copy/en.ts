@@ -1,6 +1,9 @@
 export const copy = {
   title: 'Power Places',
   changeStart: 'Change start',
+  earnedStar: 'Earned',
+  missedStar: 'Try for this',
+  otherStageStar: 'On other stages',
   needsPower: 'Needs power',
   peakAt: 'Peak at',
   upstreamTrip: 'Power stopped upstream',
@@ -222,8 +225,8 @@ export const copy = {
   helpConnection:
     'Choose a line, then tap its start and end. Confirm beside its end.',
   helpPlacement:
-    'Hover or drag over a tile. Green is ready; red shows why. Click or tap, then confirm below.',
-  helpGrab: 'Drag to move; confirm below.',
+    'Hover or drag over a tile. Green is ready; red shows why. Click or tap, then confirm beside it.',
+  helpGrab: 'Drag to move; confirm beside it.',
   helpFixed: 'Part of the village; stays here.',
   helpDepotFixed: 'The depot connection stays here.',
   wholeTile: 'Choose a whole tile',

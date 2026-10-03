@@ -126,7 +126,7 @@ export function createTray(session: Session, view: GameView) {
 
     patch(
       bar,
-      `<div class="placement-heading"><h2>${title}</h2>${button('cancel', copy.cancel, 'x')}</div><div class="placement-summary"><p class="placement-detail ${session.pendingError ? 'error' : ''}" role="status">${session.pending ? icon(session.pendingError ? 'x' : 'check-circle') : ''}<span>${detail}</span></p>${session.pending && !session.pendingError ? `<span class="placement-cost">${coinValue(Math.abs(cost), cost < 0 ? copy.refund : '')}</span>` : ''}</div>${session.pending ? `<div class="actions">${button('confirm', action, 'check-circle', 'primary')}</div>` : ''}${session.tool === 'LV' || session.tool === 'MV' ? `<div class="actions">${button('line-source', copy.changeStart, 'arrow-counter-clockwise', 'secondary small')}</div>` : ''}${inputs ? `<details><summary>${copy.keyboardBuild}</summary>${inputs}</details>` : ''}`,
+      `<div class="placement-heading"><h2>${title}</h2>${button('cancel', copy.cancel, 'x')}</div><div class="placement-summary"><p class="placement-detail ${session.pendingError ? 'error' : ''}" role="status">${session.pending ? icon(session.pendingError ? 'x' : 'check-circle') : ''}<span>${detail}</span></p>${session.pending && !session.pendingError ? `<span class="placement-cost">${coinValue(Math.abs(cost), cost < 0 ? copy.refund : '')}</span>` : ''}</div>${session.pending && session.pending.type !== 'connect' && session.pending.type !== 'place' && session.pending.type !== 'move' ? `<div class="actions">${button('confirm', action, 'check-circle', 'primary')}</div>` : ''}${session.lineStart && session.pending?.type !== 'connect' ? `<div class="actions">${button('line-source', copy.changeStart, 'arrow-counter-clockwise', 'secondary small')}</div>` : ''}${inputs ? `<details><summary>${copy.keyboardBuild}</summary>${inputs}</details>` : ''}`,
     );
     (
       bar.querySelector('[data-action=confirm]') as
@@ -136,17 +136,27 @@ export function createTray(session: Session, view: GameView) {
   }
   function updateLineConfirm() {
     const box = el('line-confirm'),
-      line = session.pending?.type === 'connect' ? session.pending : undefined;
+      line =
+        session.pending &&
+        ['connect', 'place', 'move'].includes(session.pending.type)
+          ? session.pending
+          : undefined;
     box.hidden = !line || !mapUIVisible() || session.running;
     if (box.hidden || !line) return;
     patch(
       box,
-      `<button class="primary" data-action="confirm" ${session.pendingError ? 'disabled' : ''}>${icon('check-circle')} ${copy.connect}</button><button class="icon-btn" data-action="line-source" aria-label="${copy.changeStart}" title="${copy.changeStart}">${icon('arrow-counter-clockwise')}</button>`,
+      `<button class="primary" data-action="confirm" ${session.pendingError ? 'disabled' : ''}>${icon('check-circle')} ${line.type === 'connect' ? copy.connect : line.type === 'move' ? copy.move : copy.place}</button>${line.type === 'connect' ? `<button class="icon-btn" data-action="line-source" aria-label="${copy.changeStart}" title="${copy.changeStart}">${icon('arrow-counter-clockwise')}</button>` : ''}`,
     );
-    const target = session.state.nodes.find((n) => n.id === line.b)!;
+    const target =
+      line.type === 'connect'
+        ? session.state.nodes.find((n) => n.id === line.b)!
+        : 'x' in line
+          ? line
+          : undefined;
+    if (!target) return;
     const p = world.project(target.x, target.z, 1.4),
       rect = box.getBoundingClientRect();
-    box.style.left = `${Math.max(8, Math.min(innerWidth - rect.width - 8, p.x + 22))}px`;
+    box.style.left = `${Math.max(8, Math.min(innerWidth - rect.width - 8, p.x + 36))}px`;
     box.style.top = `${Math.max(8, Math.min(innerHeight - rect.height - 8, p.y - rect.height - 16))}px`;
   }
   return { tray, refreshPlacement, updateLineConfirm };

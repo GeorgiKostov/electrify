@@ -305,3 +305,12 @@ crickets at night, the river near the water).
 - Don't use emoji, text glyphs (`✓ × → +`) or non-Phosphor icons in controls.
 - Don't use red for anything that is not "over the limit / not allowed".
 - Don't animate numbers counting up in labels (it hides the value); animate bars instead.
+
+## 3 Oct 2026 follow-up tuning
+
+- Build mode holds a readable blue-dusk floor for light and sky; only Run day reaches full night. Dawn has a peach sky and neutral meadow light.
+- Flow uses small dots with at most 0.8 per tile (less than half-span coverage). Dots and reduced-motion arrows follow the sagging cable path. Dense transformer LV circuits use street supports and parallel spans; electrical edges and reach are unchanged.
+- Completion uses a compact card on the right on desktop, over an unblurred village. All four star types appear: earned are filled spark stars, available missed targets say Try for this, and types absent from this stage say On other stages. Earned stars pop unless reduced motion is enabled. Replay stage restores that stage's entry layout and focus time while preserving later stages.
+- Held Place, Move and Connect actions share one map-side confirmation chip; no duplicate panel confirmation. Nearby unpowered badges merge into a counted pill whose accessible name lists affected buildings. Transformer loading is a thin neutral housing gauge.
+- Player-built objects number within their kind. Lines may chain via residential poles, transformers and the grid; a farm or other terminal consumer retains the upstream source. Change start appears only after choosing one.
+- Timeline power ticks use whole kW consistently with a wider plot area; schedule lanes put name, range and current time on one row, with legal bounds in the slider tooltip and time in aria-valuetext. HUD controls stay cream at night. Covers have rounded corners and exclude pulse sprites.

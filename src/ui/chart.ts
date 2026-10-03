@@ -27,7 +27,7 @@ export function chartScale(result: DayResult) {
 }
 export function chartPoints(values: number[], max: number) {
   return values
-    .map((v, i) => `${80 + (i / 96) * 280},${160 - (v / max) * 132}`)
+    .map((v, i) => `${60 + (i / 96) * 300},${160 - (v / max) * 132}`)
     .join(' ');
 }
 export function timelineChart(
@@ -58,10 +58,10 @@ export function timelineChart(
           ]
         : []),
     ];
-  return `<div class="chart-legend">${series.map((s) => `<span style="--series:${s.colour}">${s.label}</span>`).join('')}<span class="legend-limit">${copy.gridConnectionLimit} · ${power(200)}</span></div><svg class="chart timeline-chart" viewBox="0 0 380 200" role="img" aria-label="${copy.today} · ${copy.demand} · ${copy.gridImport} · ${copy.gridConnectionLimit}">${[0, max / 2, max].map((v) => `<line class="chart-grid" x1="80" y1="${160 - (v / max) * 132}" x2="360" y2="${160 - (v / max) * 132}"/><text class="axis-label" x="74" y="${164 - (v / max) * 132}" text-anchor="end">${power(v)}</text>`).join('')}${[0, 24, 48, 72, 96].map((t) => `<text class="axis-label" x="${80 + (t / 96) * 280}" y="190" text-anchor="middle">${t === 96 ? clock(0, twelve) : clock(t, twelve)}</text>`).join('')}<line class="chart-limit" x1="80" x2="360" y1="${160 - (200 / max) * 132}" y2="${160 - (200 / max) * 132}"/>${series.map((s) => `<polyline points="${chartPoints(s.values, max)}" fill="none" stroke="${s.colour}" stroke-width="2" vector-effect="non-scaling-stroke"/>`).join('')}<line id="chart-now" class="chart-now" x1="${80 + (cursor / 96) * 280}" x2="${80 + (cursor / 96) * 280}" y1="20" y2="168"/><text id="chart-now-label" class="axis-label now-label" x="${80 + (cursor / 96) * 280}" y="15" text-anchor="middle">${copy.now}</text></svg>`;
+  return `<div class="chart-legend">${series.map((s) => `<span style="--series:${s.colour}">${s.label}</span>`).join('')}<span class="legend-limit">${copy.gridConnectionLimit} · ${power(200)}</span></div><svg class="chart timeline-chart" viewBox="0 0 380 200" role="img" aria-label="${copy.today} · ${copy.demand} · ${copy.gridImport} · ${copy.gridConnectionLimit}">${[0, max / 2, max].map((v) => `<line class="chart-grid" x1="60" y1="${160 - (v / max) * 132}" x2="360" y2="${160 - (v / max) * 132}"/><text class="axis-label" x="54" y="${164 - (v / max) * 132}" text-anchor="end">${v.toFixed(0)} kW</text>`).join('')}${[0, 24, 48, 72, 96].map((t) => `<text class="axis-label" x="${60 + (t / 96) * 300}" y="190" text-anchor="middle">${t === 96 ? clock(0, twelve) : clock(t, twelve)}</text>`).join('')}<line class="chart-limit" x1="60" x2="360" y1="${160 - (200 / max) * 132}" y2="${160 - (200 / max) * 132}"/>${series.map((s) => `<polyline points="${chartPoints(s.values, max)}" fill="none" stroke="${s.colour}" stroke-width="2" vector-effect="non-scaling-stroke"/>`).join('')}<line id="chart-now" class="chart-now" x1="${60 + (cursor / 96) * 300}" x2="${60 + (cursor / 96) * 300}" y1="20" y2="168"/><text id="chart-now-label" class="axis-label now-label" x="${60 + (cursor / 96) * 300}" y="15" text-anchor="middle">${copy.now}</text></svg>`;
 }
 export function chartCursor(host: HTMLElement, cursor: number) {
-  const x = String(80 + (cursor / 96) * 280),
+  const x = String(60 + (cursor / 96) * 300),
     line = host.querySelector('#chart-now');
   line?.setAttribute('x1', x);
   line?.setAttribute('x2', x);

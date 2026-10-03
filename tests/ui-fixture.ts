@@ -318,6 +318,8 @@ export function fixture(
   };
   return {
     globals,
+    world,
+    dialog,
     session,
     controller,
     shown,

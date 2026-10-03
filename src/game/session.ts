@@ -10,6 +10,7 @@ export interface Session {
   campaignExists: boolean;
   save: Save;
   state: State;
+  revision: number;
   result: DayResult;
   previewState: State | undefined;
   previewResult: DayResult | undefined;
@@ -61,6 +62,7 @@ export function createSession(saved: Save, campaign: boolean): Session {
     campaignExists: campaign,
     save: saved,
     state: saved.state,
+    revision: 0,
     result: simulate(saved.state),
     previewState: undefined,
     previewResult: undefined,
@@ -124,6 +126,33 @@ export function updateState(s: Session, next: State, push = true) {
     s.undo.push(structuredClone(s.state));
     if (s.undo.length > 50) s.undo.shift();
   }
+  if (
+    s.state.stage !== next.stage ||
+    s.state.nodes.some((n, i) => {
+      const other = next.nodes[i];
+      return (
+        !other ||
+        n.id !== other.id ||
+        n.kind !== other.kind ||
+        n.x !== other.x ||
+        n.z !== other.z ||
+        n.size !== other.size
+      );
+    }) ||
+    s.state.nodes.length !== next.nodes.length ||
+    s.state.lines.some((l, i) => {
+      const other = next.lines[i];
+      return (
+        !other ||
+        l.id !== other.id ||
+        l.a !== other.a ||
+        l.b !== other.b ||
+        l.tier !== other.tier
+      );
+    }) ||
+    s.state.lines.length !== next.lines.length
+  )
+    s.revision++;
   s.state = next;
   s.result = simulate(next);
   clearHeldPreview(s);

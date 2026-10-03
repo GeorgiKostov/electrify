@@ -29,3 +29,7 @@ Thumbs.db
 .vscode/*
 !.vscode/extensions.json
 .idea/
+
+# Generated review snapshots duplicate Git; keep briefs and review Markdown.
+.ai/features/**/*.diff
+.ai/features/**/revision*.json

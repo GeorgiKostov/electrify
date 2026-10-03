@@ -281,3 +281,9 @@ Opus (Claude Code) set this architecture and reviews the end result of each ◆ 
 | 2026-09-30 | Stage 4 Clean is a completion requirement; stage-3 homes arrive prewired; battery day 1 starts empty; depot solar is ground-mounted | Preserve the intended lessons and the verified sequential level audit. See SIMULATION and MVP_SPEC for binding rules. |
 | 2026-09-30 | Owner requested the final Cool Places shell and one-by-one persistent teaching; Home on launch, recoverable campaigns and replay-safe stage advancement | Replace the previous dashboard locally without dependencies or simulation changes; source map in `.ai/features/coolplaces-ui-progression/source-mapping.md`. |
 
+
+### 3 Oct 2026 follow-up implementation notes
+
+Controller factories receive their explicit dependency slices and return their slices; the final spread is checked as Actions without a cast. Session topology revisions advance for stage or layout changes in setState, stage entry and campaign replacement; preview state identity temporarily keys preview geometry. Schedule-only edits retain the revision. World.draw compares the key in O(1), with immutable state identity as its standalone/cover default; it never serializes the network per frame.
+
+Three.js is a separate production vendor chunk to keep the game chunk below the build warning threshold. Review Markdown is durable project documentation. Generated .ai feature diffs and revision JSON snapshots are ignored across all features and kept locally only; Git is the history source.

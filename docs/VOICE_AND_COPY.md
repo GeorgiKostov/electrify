@@ -201,3 +201,7 @@ star achieved ("You spent only 14 coins."), then the field note.
 5. At most one `!` per screen group.
 6. Every `{placeholder}` exists in the template's parameter list.
 7. No duplicate string values across keys (warn), so one fact lives in one place.
+
+### 3 Oct 2026 follow-up copy
+
+Completion star statuses: Earned / Try for this / On other stages. The last marks a star type with no target in this stage. Placement and movement instructions point to confirmation beside the object. Replay stage restores the current stage entry; the completion card omits the earlier later-build explanation.

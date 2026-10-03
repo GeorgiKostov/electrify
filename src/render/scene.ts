@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import type { State, DayResult, Node, Tier } from '../game/types';
 import { buildTree, supportsTier, type Tree } from '../sim/network';
 import { daylightAt } from './daylight';
-import { cableEndpoints, pulseCount, pulsePhase } from './network-view';
+import { cableRoute, pulseCount, pulsePhase } from './network-view';
 import { groundAt, panOffset, zoomAt, wheelFactor } from './navigation';
 const colours = {
   meadow: 0xa9c79a,
@@ -26,25 +26,29 @@ const mat = (c: number, emissive = 0) =>
   new THREE.MeshLambertMaterial({ color: c, emissive });
 type NodeView = { group: THREE.Group; ring: THREE.Mesh };
 type LineView = {
+  path: THREE.CurvePath<THREE.Vector3>;
   meshes: THREE.Mesh[];
-  a: THREE.Vector3;
-  b: THREE.Vector3;
   length: number;
   forward: boolean;
 };
 type PulseRun = {
-  a: THREE.Vector3;
-  b: THREE.Vector3;
+  path: THREE.CurvePath<THREE.Vector3>;
   length: number;
   count: number;
   sign: number;
 };
+function span(a: THREE.Vector3, b: THREE.Vector3) {
+  const middle = a.clone().add(b).multiplyScalar(0.5);
+  middle.y -= Math.min(0.22, a.distanceTo(b) * 0.04);
+  return new THREE.CatmullRomCurve3([a, middle, b]);
+}
 export class World {
   hemisphere = new THREE.HemisphereLight(0xffffff, 0x879c99, 2);
   sun = new THREE.DirectionalLight(0xfff1db, 2.3);
   nodeViews = new Map<string, NodeView>();
   lineViews = new Map<string, LineView>();
-  topologyKey = '';
+  topologyKey: number | State | undefined;
+  building = true;
   gridStage = 0;
   lastResult?: DayResult;
   lastStep = -1;
@@ -249,6 +253,7 @@ export class World {
       height: innerHeight - 40,
     });
     this.draw(state, result, focus);
+    this.pulses.visible = false;
     this.fit();
     this.renderer.render(this.scene, this.camera);
     const points = this.corners().map((p) => p.project(this.camera));
@@ -262,7 +267,7 @@ export class World {
     image.width = 600;
     image.height = Math.round((600 * height) / width);
     const ctx = image.getContext('2d')!,
-      light = daylightAt(focus);
+      light = daylightAt(focus, this.building);
     const gradient = ctx.createLinearGradient(0, 0, 0, image.height);
     gradient.addColorStop(0, light.skyTop);
     gradient.addColorStop(1, light.skyBottom);
@@ -280,6 +285,7 @@ export class World {
       image.height,
     );
     const url = image.toDataURL('image/png');
+    this.pulses.visible = true;
     this.panX = previous.panX;
     this.panZ = previous.panZ;
     this.zoom = previous.zoom;
@@ -389,12 +395,8 @@ export class World {
     step: number,
     selected?: string,
     visualStep = step,
+    key: number | State = state,
   ) {
-    const key = JSON.stringify([
-      state.stage,
-      state.nodes.map((n) => [n.id, n.kind, n.x, n.z, n.size]),
-      state.lines.map((l) => [l.id, l.a, l.b, l.tier]),
-    ]);
     if (key !== this.topologyKey) {
       this.topologyKey = key;
       this.tree = buildTree(state);
@@ -434,13 +436,48 @@ export class World {
         leaf.castShadow = true;
         this.group.add(leaf);
       }
+      const supports = new Set<string>();
       for (const line of state.lines) {
-        const [a, b] = cableEndpoints(state, line).map(
+        const points = cableRoute(state, line).map(
           (p) => new THREE.Vector3(p.x, p.y, p.z),
         );
-        const meshes = [
-          this.cable(a, b, colours.cable, line.tier === 'MV' ? 0.044 : 0.032),
-        ];
+        const a = points[0],
+          b = points.at(-1)!;
+        const path = new THREE.CurvePath<THREE.Vector3>();
+        const meshes = points.slice(1).map((point, i) => {
+          path.add(span(points[i], point));
+          return this.cable(
+            points[i],
+            point,
+            colours.cable,
+            line.tier === 'MV' ? 0.044 : 0.032,
+          );
+        });
+        for (const point of points.slice(1, -1)) {
+          const key = `${point.x}:${point.z}`;
+          if (supports.has(key)) continue;
+          supports.add(key);
+          this.box(
+            this.group,
+            point.x,
+            0.9,
+            point.z,
+            0.07,
+            1.8,
+            0.07,
+            colours.lv,
+          );
+          this.box(
+            this.group,
+            point.x,
+            1.8,
+            point.z,
+            0.35,
+            0.05,
+            0.08,
+            colours.mv,
+          );
+        }
         if (line.tier === 'MV') {
           const offset = new THREE.Vector3(0, 0.1, 0.1);
           meshes.push(
@@ -463,9 +500,8 @@ export class World {
         const edge = this.tree.edgeById.get(line.id)!;
         this.lineViews.set(line.id, {
           meshes,
-          a,
-          b,
-          length: a.distanceTo(b),
+          path,
+          length: path.getLength(),
           forward: this.tree.parent[edge.b] === edge.a,
         });
       }
@@ -498,7 +534,7 @@ export class World {
         ),
       );
       this.pulseMesh = new THREE.InstancedMesh(
-        new THREE.SphereGeometry(0.065, 6, 4),
+        new THREE.SphereGeometry(0.045, 6, 4),
         new THREE.MeshBasicMaterial({ color: colours.spark, depthTest: false }),
         capacity,
       );
@@ -547,8 +583,7 @@ export class World {
         (mesh.material as THREE.MeshLambertMaterial).color.setHex(colour);
       if (flow && !tripped)
         this.pulseRuns.push({
-          a: view.a,
-          b: view.b,
+          path: view.path,
           length: view.length,
           count: pulseCount(flow, view.length),
           sign: (view.forward ? 1 : -1) * Math.sign(flow),
@@ -567,7 +602,7 @@ export class World {
           material.color.setHex(on ? 0xffcf8a : 0x44515b);
           material.emissive.setHex(on ? 0xffcf8a : 0);
           material.emissiveIntensity = on
-            ? 0.45 + daylightAt(visualStep).night * 1.8
+            ? 0.45 + daylightAt(visualStep, this.building).night * 1.8
             : 0;
         }
         if (object.name === 'activity') object.visible = on;
@@ -582,7 +617,7 @@ export class World {
               ? colours.over
               : loading >= 0.8
                 ? colours.busy
-                : colours.cable,
+                : colours.mv,
           );
         }
         if (object.name.startsWith('energy')) {
@@ -598,7 +633,7 @@ export class World {
   }
   setVisualTime(step: number) {
     this.visualStep = step;
-    const light = daylightAt(step);
+    const light = daylightAt(step, this.building);
     this.hemisphere.intensity = light.ambient;
     this.hemisphere.color.set(light.ambientColour);
     this.sun.intensity = light.sun;
@@ -721,12 +756,11 @@ export class World {
       );
       this.box(g, 0, 2.3, 0, 1.35, 0.08, 0.08, colours.cable);
       const ring = new THREE.Mesh(
-        new THREE.TorusGeometry(0.59, 0.065, 5, 32),
+        new THREE.TorusGeometry(0.36, 0.025, 5, 32),
         mat(colours.cable),
       );
       ring.name = 'gauge';
-      ring.rotation.x = -Math.PI / 2;
-      ring.position.y = 0.11;
+      ring.position.set(0, 1.35, 0.47);
       g.add(ring);
     } else if (node.kind === 'solar') {
       this.box(g, 0, 0.19, 0, 1.65, 0.13, 1.45, colours.solar);
@@ -755,15 +789,9 @@ export class World {
     return g;
   }
   cable(a: THREE.Vector3, b: THREE.Vector3, c: number, r: number) {
-    const direction = b.clone().sub(a),
-      mesh = new THREE.Mesh(
-        new THREE.CylinderGeometry(r, r, direction.length(), 5),
-        mat(c),
-      );
-    mesh.position.copy(a).add(b).multiplyScalar(0.5);
-    mesh.quaternion.setFromUnitVectors(
-      new THREE.Vector3(0, 1, 0),
-      direction.normalize(),
+    const mesh = new THREE.Mesh(
+      new THREE.TubeGeometry(span(a, b), 8, r, 5, false),
+      mat(c),
     );
     this.group.add(mesh);
     return mesh;
@@ -925,15 +953,6 @@ export class World {
       const object = new THREE.Object3D();
       let index = 0;
       for (const run of this.pulseRuns) {
-        const direction = run.b
-          .clone()
-          .sub(run.a)
-          .normalize()
-          .multiplyScalar(run.sign);
-        object.quaternion.setFromUnitVectors(
-          new THREE.Vector3(0, 1, 0),
-          direction,
-        );
         for (
           let i = 0;
           i < run.count && index < mesh.instanceMatrix.count;
@@ -947,7 +966,11 @@ export class World {
             run.sign,
             this.reduced,
           );
-          object.position.copy(run.a).lerp(run.b, phase);
+          object.position.copy(run.path.getPointAt(phase));
+          object.quaternion.setFromUnitVectors(
+            new THREE.Vector3(0, 1, 0),
+            run.path.getTangentAt(phase).normalize().multiplyScalar(run.sign),
+          );
           object.updateMatrix();
           mesh.setMatrixAt(index++, object.matrix);
         }
