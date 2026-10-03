@@ -13,7 +13,9 @@
   Coordinator browser checks use separate port 5187 and cover the five required sizes plus 375×812, 1280×800 and 900×800;
   successful animated stage-1 and stage-6 days with completion, idle/reduced-motion cues and midnight schedule reload have passed. Astra found one P2 internal timeline scroll issue, corrected in round 1 and verified in the phone browser.
 - Local baseline cabf9f0 and formatting-only be49785 were committed before behavioral work. Reviewed fixes were committed as 34dd6a8 and pushed to origin/main on the owner's request.
-  Vercel project power-places is linked to GeorgiKostov/electrify with Vite build configuration. Next action: verify the remote deployment and play-test on remote devices.
+  Vercel project power-places is linked to GeorgiKostov/electrify; pushes to main deploy automatically.
+  Remote test URL: https://power-places.vercel.app/. The production build is Ready; public Home, scene rendering
+  and Tasks interaction passed the browser smoke test. Next action: play-test on remote devices.
   Durable reports and exact revision live in .ai/features/ux-review-fixes/.
 
 ## 1 Oct 2026 — UI layout cleanup
