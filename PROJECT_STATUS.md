@@ -6,9 +6,9 @@
 
 - All twelve follow-up review findings addressed: dusk-readable construction, sparse routed flow, compact filled-star completion and genuine replay, local placement confirmation, counted badges, housing gauges, street-supported dense circuits, kind numbering/source chaining, compact schedules, peach dawn, cream HUD and rounded sprite-free covers.
 - Controller actions are type-checked from factory slices; topology revisions replace per-draw serialization. Generated review diff/JSON snapshots follow one ignore policy; Markdown records remain trackable. Three.js vendor splitting clears the bundle warning (497.99 kB vendor / 106.87 kB game).
-- 74 tests, strict typecheck, 221 copy strings, six-stage sequential audit and production build pass. Existing saves and electrical balance are preserved. The owner requested publication on 3 Oct 2026; these verified fixes are being published through the existing main-to-Vercel integration.
+- 74 tests, strict typecheck, 221 copy strings, six-stage sequential audit and production build pass. Existing saves and electrical balance are preserved. Published on 3 Oct 2026 as commit 88aaf7b through the existing main-to-Vercel integration. Production is Ready at https://power-places.vercel.app/; public Home, scene, counted badges and Tasks passed the browser smoke test with no console errors.
 - Browser acceptance passes full stage-1/stage-6 runs, genuine replay, local confirmation/source chaining, visible counted warnings, desktop and phone completion, and all five required viewports. Phone slider edits retain focus and internal scroll. The test fixture used memory-only storage; the owner's save was never edited.
-- Next action: verify the production deployment at https://power-places.vercel.app/ after publishing. See .ai/features/ux-followup-fixes/report.md.
+- Next action: play-test the published game on remote devices at https://power-places.vercel.app/. See .ai/features/ux-followup-fixes/report.md.
 
 ## 3 Oct 2026 — UX/UI review fixes
 
